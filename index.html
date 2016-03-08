@@ -1,0 +1,1408 @@
+<!doctype html>
+<html lang="en">
+    <head>
+    <meta charset="utf-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+  
+    <title>Plug for Minecraft PE</title>
+
+    <link rel="stylesheet" href="lib/onsen/css/onsenui.css">
+    <link rel="stylesheet" href="lib/onsen/css/onsen-css-components.css">
+    <link rel="stylesheet" href="styles/app.css"/>
+
+    <script src="lib/zepto.min.js"></script>
+    <script src="lib/onsen/js/angular/angular.min.js"></script>
+    <script src="lib/onsen/js/onsenui.min.js"></script>
+    <script src="lib/json2.js"></script>
+    <script src="lib/socket.io.js"></script>
+
+    <script src="cordova.js"></script>
+    <script src="cordova_plugins.js"></script>
+    <script src="lib/app.js"></script>
+
+	<script type="text/ons-template" id="connectingdialog.html">
+	  <ons-alert-dialog animation="default">
+		<div class="alert-dialog-title">Connecting...</div>
+		<div id="connecting_msg" class="alert-dialog-content">
+		</div>
+		<div class="alert-dialog-footer">
+		  <button ng-click='disconnect()' class="alert-dialog-button">Cancel</button>
+		</div>
+	  </ons-alert-dialog>  
+	</script>
+
+	<script type="text/ons-template" id="connecteddialog.html">
+	  <ons-alert-dialog animation="default">
+		<div class="alert-dialog-title">Connected!</div>
+		<div class="alert-dialog-content">
+			Please open Minecraft PE and press PLAY. Return here to disconnect.
+		</div>
+		<div class="alert-dialog-footer">
+		  <button ng-click='disconnect()' class="alert-dialog-button">Disconnect</button>
+		</div>
+	  </ons-alert-dialog>  
+	</script>
+
+	<script type="text/ons-template" id="connecteddialogpm.html">
+	  <ons-alert-dialog animation="default">
+		<div class="alert-dialog-title">Connected!</div>
+		<div class="alert-dialog-content">
+			Please open Minecraft PE and press PLAY. Return here to disconnect.<br><br>
+			<b>NOTE: If you are unable to connect, or asked to '/login' your username may already be in use. Please go to MCPE settings and change your name. If you are asked to '/register' choose a password and type '/register your_password'<br><br>
+			Please use the SAME name in MCPE and use /login your_password next time you connect.</b>
+			<br><br><b style="color: red">IMPORTANT: EVERY server has it's OWN usernames, passwords and settings!!</b> 
+		</div>
+		<div class="alert-dialog-footer">
+		  <button ng-click='disconnect()' class="alert-dialog-button">Disconnect</button>
+		</div>
+	  </ons-alert-dialog>  
+	</script>
+
+</head>
+
+<body ng-controller="AppController">
+	<ons-tabbar var="mainTabBar">
+		<ons-tabbar-item active="true" page="home.html">
+			<div class="tab">
+				<ons-icon icon="ion-home" class="tab-icon"></ons-icon>
+				<div class="tab-label">Home</div>
+			</div>
+		</ons-tabbar-item>
+
+		<ons-tabbar-item page="hosting.html";>
+			<div class="tab">
+				<ons-icon icon="ion-locked" class="tab-icon"></ons-icon>
+				<div class="tab-label">Host Server</div>
+			</div>
+		</ons-tabbar-item>
+
+		<ons-tabbar-item page="joinserver.html";>
+			<div class="tab">
+				<ons-icon icon="ion-earth" class="tab-icon"></ons-icon>
+				<div class="tab-label">Join Server</div>
+			</div>
+		</ons-tabbar-item>
+
+		<ons-tabbar-item ng-click="pmlist();" page="pocketmine.html";>
+			<div class="tab">
+				<ons-icon icon="ion-outlet" class="tab-icon"></ons-icon>
+				<div class="tab-label">Pocketmine</div>
+			</div>
+		</ons-tabbar-item>
+
+		<ons-tabbar-item page="help.html">
+			<div class="tab">
+				<ons-icon icon="ion-help" class="tab-icon"></ons-icon>
+				<div class="tab-label">Help</div>
+			</div>
+		</ons-tabbar-item>
+	</ons-tabbar>
+	
+	<img class="loader" src="img/loader.png"></ons-icon>
+    <div class="dimdiv"></div>
+    
+	<ons-template id="home.html">
+		<ons-navigator title="Navigator" var="myNavigator">
+			<ons-page id="home_page">
+				<ons-toolbar>
+                    <div class="left">
+						<ons-toolbar-button ng-click="facebook()"><ons-icon icon="ion-social-facebook"></ons-icon></ons-toolbar-button>
+                    </div>
+					<div class="center signin_title"></div>
+					<div class="right">
+                        <ons-toolbar-button ng-click="twitter()"><ons-icon icon="ion-social-twitter"></ons-icon></ons-toolbar-button>
+                    </div>
+				</ons-toolbar>
+				<ul class="list">
+					<li class="list__header">
+						Introduction
+					</li>
+					<li class="list__item intro">
+						<span style="color: red;"><b>IMPORTANT: Please make sure to turn on 'Local Multiplayer' in Minecraft PE settings.</b></span><br>
+                        <span style="color: red;"><b>IMPORTANT: Plug needs Minecraft PE 0.12.1 or above.</b></span>
+                        <br>
+						<b>Plug for Minecraft PE</b> plugs into Minecraft PE to give you ‘Bukkit’ style commands in your game. 
+						<b>Plug</b> works in both single player AND multiplayer games, so both you as the owner of the world, and players who connect are able 
+						to use the commands available.
+						<br><br>
+						In this version we’ve added lots of commands you normally only see in the PC version of the game.  For a full list check the help section.
+						<br><br>
+						Not only that now you can host your very own world online, using all the same <b>Plug for Minecraft PE</b> commands you are use to. Now you can play with people all over the world and even Voice Chat with them live while you play!
+						<br><br>
+						<b>Please let us know what you think via Twitter and Facebook. Also please leave us a review on the App Store if you like <b>Plug</b>!</b>
+					</li>
+
+					<li class="list__header">
+						Getting Started
+					</li>
+					<li class="list__item intro">
+						<b>Plug</b> is very easy to use, all you have to do is open Minecraft PE and start a world.  Once in the game use commands by typing them directly into the chat.
+						<br><br>
+						<b>Want to play online?</b> - Simple, sign in above, and go to the hosting tab and either edit one of the default configs or create a new one. Choose how and where you want to host (for example online, bluetooth, local wifi), Private/Public and setup your game title and description.
+						<br><br>Not only that but you can also setup permission groups to control who can use certain commands, anti-griefing to prevent players from placing blocks, destroying blocks or using certain items.
+						<br>(Just remember you need to select the group you want to use before switching to Minecraft PE.  The current group is highlighted in green).
+						<br><br>
+						<b>Want to use Voice Chat?</b> - Simple, just activate Voice by typing '.v on'. (You can find more information about voice commands in the help section under the commands tab).
+
+						<br><br>						
+						Back to command - commands work by typing into the in game chat.
+						<br><br>
+						<ul>
+							<li>
+								For example to show help type:
+								<br><b>.h</b>
+							</li>
+						</ul>
+						<br>
+						All commands will also show you how to use them if you add a ? to the end.
+						<br><br>
+						<ul>
+							<li>
+								For example to see how to use the Coordinates command type:
+								<br><b>.c ?</b>
+							</li>
+						</ul>
+						<br>
+						Before we go on, a special note about the .g (Give) command.  This command accepts Block/Item IDs OR Names for the type of item you want.  Please check the help section (Items tab) for a full list.
+						<br><br>
+                        One more special note. All players are given an ID number to make it easier to reference them.
+                        <br><br>
+                        <ul>
+                            <li>
+                                To list players type:
+                                <br><b>.l</b>
+                            </li>
+                        </ul>
+                        <br>
+                        You can use the ID number <b>in place</b> of the users name in ANY command.
+                        <br><br>
+                        <ul>
+                            <li>
+                                For example to give steve (who has ID 1) 3 ironswords either of these will work:
+                                <br><b>.g 1 ironsword 3</b>
+                                <br><b>.g steve ironsword 3</b>
+                            </li>
+                        </ul>
+                        <br>
+						Of course you probably don’t want all players to be able to use all commands.  For example Kill would allow players to cause chaos!
+						<br><br>
+						To solve this, you can create permission groups and set permissions for each type of player.  Just go to the hosting tab and create or edit a config, and you can add a new permission group, or edit the Default groups there.  Remember the Default group can’t be deleted, and is the permissions set for ANY new player who joins your world.
+						<br><br>
+						You should leave the permissions for the Default group very minimal, so you have time to figure out who has actually joined, before you give them destructive permissions like Kill.
+						<br><br>
+						<span class="notification">Example 1</span>
+						<br><br>
+						<ul>
+							<li>Set Default permissions to only allow the help command.  This protects you if a griefer were to join.</li>
+							<li>Create a new group called Normal which has a few more permissions like Give.  You can use this group for normal players.</li>
+							<li>Finally create a group called Admin which has all permissions set.</li>
+						</ul>
+						<br>
+						Now, if Steve were to join, he will only be able to use Help, or message you to ask for more permissions. 
+						If Steve doesn’t seem like a griefer you could give them a few more permissions.
+						<br><br>
+						<ul>
+							<li>For example to set Normal permissions:
+								<br><b>.sp [Player] normal</b>
+							</li>
+						</ul>
+						<br>
+						If Steve turns out to be a good friend of yours you may want to make them an admin and give them permissions to even more commands:
+						<br><br>
+						<ul>
+							<li>
+								For example to set Admin permissions:
+								<br><b>.sp [Player] admin</b>
+							</li>
+						</ul>
+						<br>
+
+						<span class="notification">Example 2</span>
+						<br><br>
+						<ul>
+							<li>Set Default permissions to only allow the help command.  This protects you if a griefer were to join.</li>
+							<li>Create a new group called Creative which has permissions you want to use on a creative world.</li>
+							<li>Finally create a group called Parkour which has permissions you want to use on a parkour style world.</li>
+						</ul>
+						<br>
+						Then depending on the type of world you are using set each players permission as they join.
+						<hr>
+						<b>Note: You can create as many groups as you like, and only the owner can set them.  So feel free to create a groups for every world you have, and set them as and when you need from inside Minecraft PE. You can delete groups by clicking on them to edit them first.</b>
+						<br>
+					</li>
+				</ul>
+			</ons-page>
+		</ons-navigator>
+	</ons-template>
+
+	<ons-template id="manageFriendPage.html">
+		<div class="top-fixed top-tab-bar top-tab-bar--top top-tab-bar--top-border">
+		  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+			<input type="radio" id='mf_f' name="mf_topBar" checked ng-click="refreshFriends_Manage('f')">
+			<button class="top-tab-bar__button top-tab-bar--top-border__button">
+			  Friends
+			</button>
+		  </label>
+
+		  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+			<input type="radio" id='mf_fr' name="mf_topBar" ng-click="refreshFriends_Manage('fr')">
+			<button class="top-tab-bar__button top-tab-bar--top-border__button">
+			  Requests <span class="fr_notification notification">0</span>
+			</button>
+		  </label>
+
+		  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+			<input type="radio" id='mf_bl' name="mf_topBar" ng-click="refreshFriends_Manage('bl')">
+			<button class="top-tab-bar__button top-tab-bar--top-border__button">
+			  Blocked
+			</button>
+		  </label>
+		</div>	
+	
+		<ons-page id="manageFriendPage_page">
+			<ons-toolbar>
+				<div class="left"><ons-back-button>Back</ons-back-button></div>
+				<div class="center">Manage Friends</div>
+				<div class="right"><ons-toolbar-button ng-click="friends_Manage_Add()"><ons-icon icon="ion-plus"></ons-icon></ons-toolbar-button></div>
+			</ons-toolbar>
+			<div class="helps-fixed">
+				<ul class="list">
+					<li id="mf_toptext_f" class="list__item intro">
+						Add new friends by tapping the + icon on the top right (you can also add friends from inside Minecraft PE). Delete friends by tapping the delete button next to the friend name.<br>
+						<b>NOTE: Editing friends here does not affect your Google+ friends or circles.</b>
+					</li>
+					<li id="mf_toptext_fr" class="list__item intro">
+						Tap on a request for more options. Add new friends by tapping the + icon on the top right (you can also add friends from inside Minecraft PE).<br>
+						<b>NOTE: Editing friends here does not affect your Google+ friends or circles.</b>
+					</li>
+					<li id="mf_toptext_bl" class="list__item intro">
+						The following users are blocked from sending you friend requests. Remove a user from the list by tapping the delete button next to the friend name.
+					</li>
+				</ul>
+				<div id="manageFriendPageContents">
+				</div>
+			</div>
+		</ons-page>
+	</ons-template>
+
+	<ons-template id="hosting.html">
+		<ons-navigator title="Navigator" var="myNavigator">
+			<ons-page id="hosting_page">
+				<ons-toolbar>
+					<div class="left">
+						<ons-toolbar-button ng-click="facebook()"><ons-icon icon="ion-social-facebook"></ons-icon></ons-toolbar-button>
+                    </div>
+                    <div class="center signin_title"></div>
+					<div class="right">
+                        <ons-toolbar-button ng-click="twitter()"><ons-icon icon="ion-social-twitter"></ons-icon></ons-toolbar-button>
+                    </div>
+				</ons-toolbar>
+				<ul class="list">
+					<li class="list__header">
+						Hosting Configuration
+						<div class="host_button_r" ng-click="newHostingConfig()"><ons-icon icon="ion-plus"></ons-icon>
+					</li>
+					<li class="list__item intro">
+                        Please select a hosting configuration to use for hosting, or create a new one by tapping the + button. You can edit a configuration by tapping the settings button. (Default configurations cannot be renamed or deleted).
+						<p>When you are ready, open Minecraft PE, press 'Play' and open a world. Your game will be hosted over WiFi, Bluetooth and/or the Internet depending on your configuration.</p>
+						<p class='host_not_sign_in' style='display:none;'><b>NOTE: Please sign in to select, edit or create Internet configurations.</b></p>
+                    </li>
+					<ons-list id="hostingEntries">
+					</ons-list>                    
+				</ul>
+			</ons-page>
+		</ons-navigator>
+	</ons-template>
+	
+	<ons-template id="hostingedit.html">
+		<ons-page id="hostingedit_page">
+			<ons-toolbar>
+				<div class="left"><ons-back-button>Cancel</ons-back-button></div>
+				<div class="elipH server_config center">Server Config</div>
+				<div class="right"><ons-toolbar-button ng-click="saveHostingConfig()">Save</ons-toolbar-button></div>
+			</ons-toolbar>
+			<ul class="list">			
+				<li class="list__header">
+					Plug PE Commands
+					<ons-icon id="localWifiHelp" class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'plugPEcmdsPO')"></ons-icon>
+				</li>
+				<ons-list>
+					<ons-list-item><ons-row><ons-col>
+						<div class="item-title">Turn Plug PE commands on/off.</div>
+					</ons-col><ons-col width="65px">
+						<ons-switch var="_plugPECommandsON" modifier="list-item" checked disabled onchange="_plugPECommandsON_changed()"></ons-switch>
+					</ons-col></ons-row></ons-list-item>
+				</ons-list>
+			</ul>
+			
+			<div id="hosting_permissionsGroups">
+				<ul class="list">
+					<li class="list__header">
+						Permission Groups<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'permPopover')"></ons-icon>
+						<div class="host_button_r" ng-click="new_group()"><ons-icon icon="ion-plus"></ons-icon></div>
+					</li>
+					<ons-list id="groupList">
+					</ons-list>
+				</ul>
+			</div>
+
+			<div id="hosting_adventure">
+				<ul class="list">
+					<li class="list__header">
+						Adventure Mode<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'adventurePopover')"></ons-icon>
+					</li>
+					<ons-list>
+						<ons-list-item><ons-row><ons-col>
+							<div class="item-title">Prevent breaking blocks.</div>
+							<div class="item-desc">Prevents breaking any existing blocks</div>
+						</ons-col><ons-col width="65px">
+							<ons-switch var="_adventureModeON_break" modifier="groups" onchange="_adventureModeON_break_changed()"></ons-switch>
+						</ons-col></ons-row></ons-list-item>
+						<ons-list-item><ons-row><ons-col>
+							<div class="item-title">Prevent placing and blocks.</div>
+							<div class="item-desc">(NOTE: Only block placement is prevented. Other item use is not prevented)</div>
+						</ons-col><ons-col width="65px">
+							<ons-switch var="_adventureModeON_place" modifier="groups" onchange="_adventureModeON_place_changed()"></ons-switch>
+						</ons-col></ons-row></ons-list-item>
+					</ons-list>
+				</ul>
+			</div>
+
+			<div id="hosting_prevent">
+				<ul class="list">
+					<li class="list__header">
+						Prevent Items [BETA]<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'preventPopover')"></ons-icon>
+						<div class="host_button_r" ng-click="add_prevent()"><ons-icon icon="ion-plus"></ons-icon></div>
+					</li>
+					<li class="list__item intro">
+						<div>(NOTE: Blocks AND items can now be prevented. Add ANY items you don't want used on your server here.  The default list should be adequate for most servers)</div>
+						<div id="preventTitle"></div>
+						<table id="preventList">
+						</table>
+					</li>
+				</ul>
+			</div>
+
+			<ul class="list">
+				<li class="list__header">
+					Hosting Modes<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'hostingModePO')"></ons-icon>
+				</li>
+				<li class="list__item list__item_cb list__item--tappable">
+					<label class="checkbox checkbox--list-item">
+						<input type="checkbox" id="localWiFi" ng-click="toggle_localWiFion();" checked>
+							<div class="checkbox__checkmark checkbox--list-item__checkmark"></div>
+							Local Wifi (Turn on WiFi)
+					</label>
+				</li>
+				<li class="list__item list__item_cb list__item--tappable">
+					<label class="checkbox checkbox--list-item">
+						<input type="checkbox" id="localBT" ng-click="toggle_localBTon();" checked>
+							<div class="checkbox__checkmark checkbox--list-item__checkmark"></div>
+							Local Bluetooth (Turn on Bluetooth)
+					</label>
+				</li>
+				<li class="internetHostingMode list__item list__item_cb list__item--tappable">
+					<label class="checkbox checkbox--list-item">
+						<input type="checkbox" id="internet" ng-click="toggle_interneton();" checked>
+							<div class="checkbox__checkmark checkbox--list-item__checkmark"></div>
+							<span id="internetText">Internet (Host your server online)</span>
+					</label>
+				</li>
+			</ul>
+
+			<div id="internetHostingConfig">
+				<ul class="list">
+					<li class="list__header">
+						Server Description<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'hostingInternetDescPO')"></ons-icon>
+					</li>
+					<li class="list__item intro">
+						<input id="titleBox" type="text" class="text-input text-input--transparent" style="width:100%;" placeholder="Please enter a title for your server.">
+					</li>
+					
+					<li class="list__item intro">
+						<textarea id="descriptionBox" class="textarea textarea--transparent" style="width:100%; height:42px;" placeholder="Please enter a description for your server."></textarea>
+					</li>
+					
+					<li class="list__item intro">
+						<p style="text-align: center; margin-top:0px"><b>World Type:</b></p>
+						<div class="button-bar" style="width:80%;margin:0 auto;">
+							<div class="button-bar__item">
+								<input type="radio" name="worldTypesSegment" ng-click="toggle_hostingSurvival();" id="rsurvival" checked>
+									<button class="button-bar__button">Survival</button>
+							</div>
+							<div class="button-bar__item">
+								<input type="radio" name="worldTypesSegment" ng-click="toggle_hostingSurvival();" id="rcreative">
+									<button class="button-bar__button">Creative</button>
+							</div>
+						</div>
+					</li>
+				</ul>
+
+				<li class="list__header">
+					Server Access<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'hostingInternetAccessPO')"></ons-icon>
+				</li>
+				<li class="list__item intro">
+					<p style="text-align: center; margin-top:0px"><b>Server Type:</b></p>
+					<div class="button-bar" style="width:80%;margin:0 auto;">
+						<div class="button-bar__item">
+							<input type="radio" name="worldPublicSegment" ng-click="checkPublicRadio()" id="rpublic" checked>
+								<button class="button-bar__button">Public</button>
+								</div>
+						<div class="button-bar__item"">
+							<input type="radio" name="worldPublicSegment" ng-click="checkPublicRadio()" id="rprivate" >
+								<button class="button-bar__button">Private</button>
+						</div>
+					</div>
+				</li>
+
+				<li class="list__header" id="allowedFriendsHeader">
+					Allowed Friends<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'hostingAllowedPO')"></ons-icon>
+				<div class="host_button_r" ng-click="myNavigator.pushPage('friendPage.html', { animation: 'slide' });"><ons-icon icon="ion-edit"></ons-icon></div>
+				</li>
+				<li class="list__item intro" id="noAllowedFriends">
+					<p>Your server is <b>Private</b>, you must manually add players here to allow them access. Tap the edit button on the top right to add players.</p>
+				</li>					
+
+				<li class="list__header" id="invitedFriendsHeader">
+					Invited Friends<ons-icon class="host_button_i" icon="ion-help-circled" ng-click="questionHelp($event, 'hostingInvitePO')"></ons-icon>
+					<div class="host_button_r" ng-click="myNavigator.pushPage('friendPage.html', { animation: 'slide' });"><ons-icon icon="ion-edit"></ons-icon></div>
+				</li>
+				<li class="list__item intro" id="noInvitedFriends">
+					<p>Your server is <b>Public</b> so all players will be allowed to join. If you also want to send invites to specific players add them here by tapping the edit button on the right.</p>
+				</li>
+				<ons-list id="hostedFriends">
+				</ons-list>
+			</div>
+		</ons-page>
+	</ons-template>
+
+    <ons-template id="plugPEcmdsPO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>Turn this setting on to enable all Plug PE commands like .tp (teleport), .g (give), .ban etc. Remember you can setup permisions on which players can use which commands.
+                </p>
+                <p>Turning this OFF will disable all Plug PE commands and features. If you don't want to use commands a better way is to disable them all in the 'Default' group to prevent players using them. This way you still have access to .ban and .kick and all commands yourself.
+                <p>
+                <p>This setting is mainly here in case Minecraft PE is updated and commands break. You could turn them off until we release an update.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="permPopover">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>Permission groups allow you to set different permissions for each player.</p>
+                <ul>
+                    <li>Use the set permissions (.sp) command from Minecraft PE to assign a permission group to a player:<br>
+                        <b>.sp [Player] [Permission Group]</b>
+                    </li>
+                </ul>
+                <p>The default group cannot be deleted and applies to all new players you have not set a group for yet. Use this group to set very basic or no permissions for new players who join.</p>
+                <p>Tap a group to edit/delete it, or tap the + icon to add a new group.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="adventurePopover">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>In Adventure Mode players cannot break or place blocks.</p>
+                <p>This mode is useful for Parkour style levels or other levels where players do not need to edit the world.</p>
+                <p>For grief prevention, turn this OFF and use 'Prevent Items' instead as that option allows you to select specific Items the user cannot use.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="preventPopover">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>Prevent Items allows you to prevent certain items being used in your world.  This is especially useful to prevent griefing with items like water, lava and TNT.</p>
+                <p>NOTE: The items you select here apply to ALL players who join, but not to you as world owner.</p>
+                <p>Tap an item to delete it, or tap the + icon to add a new item.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="hostingModePO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p><b>You can chose as many options as you like:</b></p>
+                <p><b>Local WiFi hosting</b> - ONLY players on the SAME WiFi connection as you can connect to your world. Make sure all players are connected to the SAME WiFi router.</p>
+                <p><b>Local Bluetooth hosting</b> - ONLY players near you (10 meters or so) can connect to you over Bluetooth. (Usefull when you don't have a WiFi connection like in a car). Remember all players must run Plug PE and turn Bluetooth ON (see help).</p>
+                <p><b>Internet hosting</b> - players can connect to you over the internet (3G/4G/LTE/WiFi). Your server will show on the 'Join' page. (You can still make your server private and invite only).</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="hostingInternetDescPO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>The title and description you enter here will be shown to other users on the <b>Join Server</b> page. Use them to explain what you are hosting, your world rules and any other information you like about the world.</p>
+                <p>The World Type you select here will also be shown on the <b>Join Server</b> page. You should select the actual type you will be running, and not try to trick joiners!</p>
+                <p><b>NOTE: Plug PE will try to detect the type of world you are running, what you put here will only be used if Plug PE cannot detect the world type.</b></p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="hostingInternetAccessPO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p><b>Public</b> - Your server will be shown on the <b>Join Server</b> page, and anyone on the internet using Plug PE will be able to join. You should make sure 'Default' Plug PE permissions are set to prevent griefing (prevent lava etc). You can still choose players to specifically send an invite to. These players will receive a notification on their device to let them know you invited them to play.</p>
+                <p><b>Private</b> - Your server will only be shown on the <b>Join Server</b> page to the friends you add to the list. Only those players/friends will be able to join your server. These players will also receive a notification on their device to let them know you invited them to play and are currently hosting your world.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="hostingInvitePO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>Since your server is <b>Public</b> it will be shown on the <b>Join Server</b> page, and anyone on the internet using Plug PE will be able to join.</p>
+                <p><b>Select specific players you would like to send an invite to here.</b></p>
+                <p>These players will receive a notification on their device to let them know you invited them to play and are currently hosting your world.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+    <ons-template id="hostingAllowedPO">
+        <ons-dialog cancelable>
+            <li class="list__item intro">
+                <p>Since your server is <b>Private</b> only the specific players you select here will see your world and be able to join it.</p>
+                <p><b>Select specific players to give them access to connect to your world.</b></p>
+                <p>These players will also receive a notification on their device to let them know you invited them to play and are currently hosting your world.</p>
+            </li>
+        </ons-dialog>
+    </ons-template>
+
+	<ons-template id="friendPage.html">
+		<ons-page id="friendPage_page">
+			<ons-toolbar>
+				<div class="left"><ons-back-button>Back</ons-back-button></div>
+				<div id="friendPage_title" class="center"></div>
+				<div class="right"><ons-toolbar-button ng-click="updateFriends(true)">Save</ons-toolbar-button></div>
+			</ons-toolbar>
+			<div id="friendPageContents">
+			</div>
+		</ons-page>
+	</ons-template>
+
+	<ons-template id="permission_group.html">
+		<ons-page id="permission_group_page">
+			<ons-toolbar>
+				<div class="left"><ons-back-button>Back</ons-back-button></div>
+				<div id="permissions_title" class="center">Permissions:</div>
+				<div class="right"><ons-toolbar-button ng-click="savePermissions()">Save</ons-toolbar-button></div>
+			</ons-toolbar>
+
+			<ons-button id="deleteb" ng-click="deleteGroup()" class="delete-button">Delete Permission Group</ons-button>
+			<ons-list>
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Kill (.k)</div>
+					<div class="item-desc">Kill a player.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_k" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col> 
+					<div class="item-title">List (.l)</div>
+					<div class="item-desc">List players and roles.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_l" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col> 
+					<div class="item-title">Info (.i)</div>
+					<div class="item-desc">Show game/world information.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_i" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col> 
+					<div class="item-title">Coordinates (.c)</div>
+					<div class="item-desc">Show your/player/all coordinates.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_c" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Give (.g)</div>
+					<div class="item-desc">Give yourself/player an item.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_g" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Effect (.ef)</div>
+					<div class="item-desc">Give yourself a potion effect.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_ef" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Effect Others (.ef)</div>
+					<div class="item-desc">Give another player a potion effect.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_efo" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+                <ons-list-item><ons-row><ons-col>
+                    <div class="item-title">Experience (.xp)</div>
+                    <div class="item-desc">Give yourself experience.</div>
+                    </ons-col><ons-col  width="65px">
+                    <ons-switch var="_xp" modifier="groups"></ons-switch>
+                </ons-col></ons-row></ons-list-item>
+
+                <ons-list-item><ons-row><ons-col>
+                    <div class="item-title">Experience Others (.xp)</div>
+                    <div class="item-desc">Give another player experience.</div>
+                    </ons-col><ons-col  width="65px">
+                    <ons-switch var="_xpo" modifier="groups"></ons-switch>
+                </ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Lock (.lo)</div>
+					<div class="item-desc">Locks a player in position.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_lo" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Invisible (.in)</div>
+					<div class="item-desc">Become invisible.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_in" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col> 
+					<div class="item-title">Invisible Others (.in)</div>
+					<div class="item-desc">Make other players invisible.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_ino" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Kick (.kick)</div>
+					<div class="item-desc">Kick a player.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_kick" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Ban (.ban)</div>
+					<div class="item-desc">Ban a player (and device).</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_ban" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Unban (.unban)</div>
+					<div class="item-desc">Unban a player (and device).</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_unban" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Message (.msg)</div>
+					<div class="item-desc">Private message a player.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_msg" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col>
+					<div class="item-title">Chat (.chat)</div>
+					<div class="item-desc">Private chat a player.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_chat" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+                <ons-list-item><ons-row><ons-col>
+                    <div class="item-title">Player Limit (.pl)</div>
+                    <div class="item-desc">Set a player join limit.</div>
+                </ons-col><ons-col  width="65px">
+                    <ons-switch var="_pl" modifier="groups"></ons-switch>
+                </ons-col></ons-row></ons-list-item>
+
+				<ons-list-item><ons-row><ons-col> 
+					<div class="item-title">Gamemode (.gm)</div>
+					<div class="item-desc">Change gamemode for players.</div>
+					</ons-col><ons-col  width="65px">
+					<ons-switch var="_gm" modifier="groups"></ons-switch>
+				</ons-col></ons-row></ons-list-item>
+
+                <ons-list-item><ons-row><ons-col>
+                <div class="item-title">VoiceChat (.v)</div>
+                <div class="item-desc">Use Voice Chat.</div>
+                </ons-col><ons-col  width="65px">
+                <ons-switch var="_v" modifier="groups"></ons-switch>
+                </ons-col></ons-row></ons-list-item>
+
+                <ons-list-item><ons-row><ons-col>
+                <div class="item-title">VoiceChat List (.vl)</div>
+                <div class="item-desc">Show Voice Chat status.</div>
+                </ons-col><ons-col  width="65px">
+                <ons-switch var="_vl" modifier="groups"></ons-switch>
+                </ons-col></ons-row></ons-list-item>
+
+			</ons-list>
+			<br>
+		</ons-page>
+	</ons-template>
+  
+	<ons-template id="joinserver.html">
+        <ons-navigator title="Navigator" var="myNavigator">
+			<div class="top-fixed top-tab-bar top-tab-bar--top top-tab-bar--top-border">
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" id='js_allTab' name="js_topBar" checked ng-click="svlist('All')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  All
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="js_topBar" ng-click="svlist('Survival')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Survival
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="js_topBar" ng-click="svlist('Creative')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Creative
+				</button>
+			  </label>
+			</div>	
+            <ons-page id="joinserver_page">
+                <ons-toolbar>
+                    <div class="left"><ons-toolbar-button ng-click="svlist(false, false, true)"><ons-icon icon="ion-android-refresh"></ons-icon></ons-toolbar-button></div>
+                    <div class="center signin_title"></div>
+                    <div class="right"><ons-toolbar-button ng-click="srvprompt()"><ons-icon icon="ion-search"></ons-icon></ons-toolbar-button></div>
+                </ons-toolbar>
+                <div class="helps-fixed">
+					<ul class="list">
+						<li id="srvNotLoggedIn" class="list__item intro" style="font-size: 20px; text-align: center; display: none;" >
+							<b>Please Sign In to join servers!</b>
+						</li>
+					</ul>
+					<ons-list id="srvList">
+					</ons-list>
+                    <div id="joinPad"></div>
+				</div>
+            </ons-page>
+            <div class="bottom-tab-bar top-tab-bar top-tab-bar--top top-tab-bar--top-border">
+            <label class="top-tab-bar__item top-tab-bar--top-border__item">
+            <input type="radio" name="bottom-join" checked ng-click="svlist(false, 'Public')">
+            <button class="top-tab-bar__button top-tab-bar--top-border__button">
+            Public
+            </button>
+            </label>
+            
+            <label class="top-tab-bar__item top-tab-bar--top-border__item">
+            <input type="radio" name="bottom-join" ng-click="svlist(false, 'Private')">
+            <button class="top-tab-bar__button top-tab-bar--top-border__button">
+            Private
+            </button>
+            </label>
+            
+            <label class="top-tab-bar__item top-tab-bar--top-border__item">
+            <input type="radio" name="bottom-join" ng-click="svlist(false, 'Friends')">
+            <button class="top-tab-bar__button top-tab-bar--top-border__button">
+            Friends
+            </button>
+            </label>
+            
+            <label class="top-tab-bar__item top-tab-bar--top-border__item">
+            <input type="radio" id='js_invitesTab' name="bottom-join" ng-click="svlist(false, 'Invites')">
+            <button class="top-tab-bar__button top-tab-bar--top-border__button">
+            Invites
+            </button>
+            </label>
+            </div>				
+        </ons-navigator>
+	</ons-template>
+
+    <ons-template id="pocketmine.html">
+        <ons-navigator title="Navigator" var="myNavigator">
+			<div class="top-fixed top-tab-bar top-tab-bar--top top-tab-bar--top-border">
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="pm_topBar" checked ng-click="pmlist('All')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  All
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="pm_topBar" ng-click="pmlist('Survival')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Survival
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="pm_topBar" ng-click="pmlist('Creative')">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Creative
+				</button>
+			  </label>
+			</div>	
+            <ons-page id="pocketmine_page">
+                <ons-toolbar>
+					<div class="left"><ons-toolbar-button ng-click="pmlist(false, true)"><ons-icon icon="ion-android-refresh"></ons-icon></ons-toolbar-button></div>
+                    <div class="center">Pocketmine</div>
+                    <div class="right"><ons-toolbar-button ng-click="pmprompt()"><ons-icon icon="ion-search"></ons-icon></ons-toolbar-button></div>
+                </ons-toolbar>
+                <div class="helps-fixed">
+					<ons-list id="pmList">
+					</ons-list>
+				</div>
+            </ons-page>
+        </ons-navigator>
+    </ons-template>
+
+	<ons-template id="help.html">
+		<ons-navigator title="Navigator" var="myNavigator">
+			<div class="top-fixed top-tab-bar top-tab-bar--top top-tab-bar--top-border">
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="help_topBar" checked ng-click="topTabBar(1)">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  General
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="help_topBar" ng-click="topTabBar(2)">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Bluetooth
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="help_topBar" ng-click="topTabBar(3)">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Commands
+				</button>
+			  </label>
+
+			  <label class="top-tab-bar__item top-tab-bar--top-border__item">
+				<input type="radio" name="help_topBar" ng-click="topTabBar(4)">
+				<button class="top-tab-bar__button top-tab-bar--top-border__button">
+				  Items
+				</button>
+			  </label>
+			</div>		
+			<ons-page id="help_page">
+				<ons-toolbar>
+					<div class="left"></div>
+					<div class="center">Help</div>
+					<div class="right"><ons-toolbar-button ng-click="email()"><ons-icon icon="ion-email"></ons-icon></ons-toolbar-button></div>
+				</ons-toolbar>
+				
+				<div id="general_help" class="helps helps-fixed">
+					<li class="list__header">
+						Introduction
+					</li>
+					<li class="list__item intro">
+						<span style="color: red;"><b>IMPORTANT: Please make sure to turn on 'Local Multiplayer' in Minecraft PE settings.</b></span>
+						<br>
+						<b>Plug for Minecraft PE</b> plugs into Minecraft PE to give you ‘Bukkit’ style commands in your game. 
+						<b>Plug</b> works in both single player AND multiplayer games, so both you as the owner of the world, and players who connect are able 
+						to use the commands available.
+						<br><br>
+						In this version we’ve added lots of commands you normally only see in the PC version of the game.  For a full list check the help section.
+						<br><br>
+						Not only that now you can host your very own world online, using all the same <b>Plug for Minecraft PE</b> commands you are use to. Now you can play with people all over the world and even Voice Chat with them live while you play!
+						<br><br>
+						<b>Please let us know what you think via Twitter and Facebook. Also please leave us a review on the App Store if you like <b>Plug</b>!</b>
+					</li>
+					<ul class="list">
+						<li class="list__header">
+							Using Plug
+						</li>
+						<li class="list__item intro">
+							Using <b>Plug for Minecraft PE</b> is very easy:
+							<br><br>
+							<ul>
+								<li>Open <b>Plug for Minecraft PE.</b></li>
+								<li>Open Minecraft PE, press PLAY and open a world.</li>
+								<li><span style="color: red;"><b>IMPORTANT: Turn on 'Local Multiplayer' in Minecraft PE settings.</b></span>								
+								<li>Open Minecraft PE chat and type <b>.help</b> or <b>.h</b> to see a list of commands.</b></li>
+								<li>That’s it!</li>
+							</ul>
+							<br>
+							Remember you can choose how your Plug world is hosted from the Host Server Tab. Create or edit a new config and choose if you want the server hosted online, which permissions you want to use and any anti-griefing measures you want to activate.
+							<br><br>
+							All commands are controlled from inside Minecraft PE chat, just like Plugins on the PC version of Minecraft.
+							<br><br>
+							<b>Plug</b> is a world first and no other App exists like it on the App Store.  We are constantly developing it and hope to eventually implement every PC plugin possible!
+							<br><br>
+							If you find a problem with <b>Plug</b> or would just like to give us some feedback, feel free to send us a comment using the email button in the menu above.
+							<br><br>
+							Thank’s for using <b>Plug</b>, we hope you enjoy it!
+						</li>
+					</ul>
+				</div>
+
+				<div id="bluetooth_help" style="display:none" class="helps helps-fixed">
+					<ul class="list">
+						<li class="list__header">
+							Introduction
+						</li>
+						<li class="list__item intro">
+							Don’t have a WiFi connection?  That’s ok - <b>Plug</b> works over Bluetooth!
+							<br><br>
+							Now you can play with friends where a WiFi connection is not available like on a road trip.  All the same features are available as with WiFi, and connecting up is just as easy...
+							<br><br>
+							<b>(Note: You can actually use WiFi and BlueTooth at the same time if you wish.  That means some players can connect over WiFi and others over BlueTooth).</b>
+						
+						</li>
+						<li class="list__header">
+							Getting Started
+						</li>
+						<li class="list__item intro">
+							Connecting with BlueTooth is exactly the same as connecting over WiFi, except you must remember to turn on BlueTooth on your device!
+							<br><br>
+							<b>To host a world:</b>
+							<ul>
+								<li>Turn BlueTooth ON on your device - slide up from the bottom of the screen and make sure the BlueTooth icon is selected.</li>
+								<li>Open <b>Plug for Minecraft PE.</b></li>
+								<li>Open Minecraft PE, press PLAY and open a world. Other players will now be able to connect to your world over BlueTooth</li>
+							</ul>
+							<br>
+							<b>To join a world that’s being hosted:</b>
+							<ul>
+								<li>Turn BlueTooth ON on your device - slide up from the bottom of the screen and make sure the BlueTooth icon is selected.</li>
+								<li>Open <b>Plug for Minecraft PE.</b></li>
+								<li>Open Minecraft PE and press PLAY.  Plug will start searching for nearby devices hosting worlds, this usually only takes 10 seconds or so, but could take up to 60 seconds.</li>
+								<li>Available worlds will appear in the list as blue. Select one, and you will join the game.</li>
+							</ul>
+							<hr>
+							<b>Note: Since <b>Plug</b> does all the work in making BlueTooth connections work, EVERY player who wants to connect over BlueTooth needs to run <b>Plug</b>.  That includes the person hosting, AND everyone who wants to join.</b>
+							<br>
+						</li>
+					</ul>
+				</div>
+				
+				<div id="commands_help" style="display:none" class="helps helps-fixed">
+					<ul class="list">
+						<li class="list__header">
+							Commands Reference
+						</li>
+						<li class="list__item intro">
+							A lot of commands are available in <b>Plug</b>, and we have done our best to make them as simple to use as possible.  If you play the PC version of Minecraft you are probably use to a lot of the commands here.
+							<br><br>
+							Remember you can get a quick usage guide inside Minecraft PE by tying a command followed by a question mark, for example: <b>.c ?</b>
+						</li>
+
+						<li class="list__header">
+							Set Permission (.sp)
+						</li>
+						<li class="list__item intro">
+							This command sets the permissions for a player by assigning them a Permission Group. Check the Home Tab for more information on how to use this command.
+							<br><br>
+							<b>NOTE: Only the world owner can use this command.</b>
+							<br><br>
+							<ul><li><b>Usage: .sp | .sp [Player] {PermGroup}</b></li></ul>
+							<br>
+							To list available permission groups:<br>
+							<ul><li><b>.sp</b></li></ul>
+							<br>
+							To view which permission group player 'Steve' is in:
+							<ul><li><b>.sp steve</b></li></ul>
+							<br>
+							To set permission group 'Default' for player 'Steve'
+							<ul><li><b>.sp steve default</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Kill (.k)
+						</li>
+						<li class="list__item intro">
+							This command kills a player immediately.  The player is still able to respawn as normal.  Use this command to warn users.
+							<br><br>
+							<ul><li><b>Usage: .k [Player]</b></li></ul>
+							<br>
+							To kill player 'Steve':
+							<ul><li><b>.k steve</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							List (.l)
+						</li>
+						<li class="list__item intro">
+							This command lists all the players in the world, which permission group they are in and if they have any special modes set. It also shows the ID numbers for each player. IDs can be used <b>in place</b> of the player name in ANY command.
+							<br><br>
+							<span class="notification">Special Modes</span>
+							<br>
+                            LO = Locked<br>
+                            IN = Invisible<br>                            
+							<br>
+							<ul><li><b>Usage: .l</b></li></ul>
+							<br>
+							To list all players:
+							<ul><li><b>.l</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Info (.i)
+						</li>
+						<li class="list__item intro">
+							This command shows the world type, seed, number of players, and if any global modes are on
+							<br><br>
+							<ul><li><b>Usage: .i</b></li></ul>
+							<br>
+							To show world info:
+							<ul><li><b>.i</b></li></ul>
+						</li>
+						
+						<li class="list__header">
+							Coordinates (.c)
+						</li>
+						<li class="list__item intro">
+							This command shows your coordinates, or those of another player, or of all players.
+							<br><br>
+							<ul><li><b>Usage: .c | .c [Player] | .c all</b></li></ul>
+							<br>
+							To show your coordinates:
+							<ul><li><b>.c</b></li></ul>
+							To show coordinates of player Steve:
+							<ul><li><b>.c steve</b></li></ul>
+							To show coordinates of all players:
+							<ul><li><b>.c all</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Experience (.xp)
+						</li>
+						<li class="list__item intro">
+							This command gives you or another player Bottles o Enchantment which can be thrown into the ground to gain experience instantly.
+							<br><br>
+							<ul><li><b>Usage: .xp || .xp [Player]</b></li></ul>
+							<br>
+							To give yourself experience:
+							<ul>
+							<li><b>.xp</b></li>
+							</ul>
+							To give player Steve experience:
+							<ul>
+							<li><b>.xp steve</b></li>
+							</ul>
+                            <b>NOTE: This is a shortcut to give/be given bottle o enchantment to quickly gain experience. You/The player needs to select the bottles from the hotbar and throw them into the ground to actually gain experience.</b>
+						</li>
+
+						<li class="list__header">
+							Effect (.ef)
+						</li>
+						<li class="list__item intro">
+							This command applies a potion effect to you or another player.
+							<br><br>
+							<ul><li><b>Usage: .ef [Effect] || .ef [Player] [Effect]</b></li></ul>
+							<br>
+							To give yourself Night Vision:
+							<ul>
+							<li><b>.ef NightVision</b></li>
+							</ul>
+							To give player Steve use Night Vision:
+							<ul>
+							<li><b>.ef steve Night Vision</b></li>
+							</ul>
+                            To list all possible effects:
+                            <ul>
+                                <li><b>.ef</b></li>
+                            </ul>
+						</li>
+
+						<li class="list__header">
+							Give (.g)
+						</li>
+						<li class="list__item intro">
+							This command gives you or another player an item or block. Please see the 'Items' tab above for valid values. (You can also give yourself enchanted items!)
+							<br><br>
+							<ul><li><b>Usage: .g [item:type]{,enchantment:level,...} {qty} || .g [Player] [item:type]{,enchantment:level...} [qty]</b></li></ul>
+							<br>
+							To give yourself 1 iron sword use either:
+							<ul>
+							<li><b>.g ironsword</b></li>
+							<li><b>.g 267</b></li>
+							</ul>
+							To give yourself 3 iron swords use either:
+							<ul>
+							<li><b>.g ironsword 3</b></li>
+							<li><b>.g 267 3</b></li>
+							</ul>
+							To give 3 iron swords to player Steve use either:
+							<ul>
+							<li><b>.g steve ironsword 3</b></li>
+							<li><b>.g steve 267 3</b></li>
+							</ul>
+                            Some items have different types:
+                            <ul>
+                                <li><b>.g spawnegg:zombie</b></li>
+                            </ul>
+                            If you don't know the types, Plug will tell you what the options are. For example this command will tell you the various types of spawn egg available:
+                            <ul>
+                                <li><b>.g spawnegg</b></li>
+                            </ul>
+							You can also give yourself enchanted items. To give yourself 1 iron sword with enchantment Power level 2:
+							<ul>
+							<li><b>.g ironsword,power:2,punch:4</b></li>
+							</ul>
+							To see all possible enchantments:
+							<ul>
+							<li><b>.g ironsword,help</b></li>
+							</ul>
+						</li>
+
+						<li class="list__header">
+							Lock (.lo)
+						</li>
+						<li class="list__item intro">
+							This command locks a player, or all players preventing them from moving. This is useful if you want to change something in a world without interference.
+							<br><br>
+							<ul><li><b>Usage: .lo  | .lo [All |Player] [ON|OFF]</b></li></ul>
+							<br>
+							To show your lock status:
+							<ul><li><b>.lo</b></li></ul>
+							To lock player steve:
+							<ul><li><b>.lo steve on</b></li></ul>
+							To lock all players 
+							<ul><li><b>.lo all on</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Invisible (.in)
+						</li>
+						<li class="list__item intro">
+							This command turns your or another player invisible.
+							<br><br>
+							<ul><li><b>Usage: .in | .in me [ON|OFF] | .in [Player] [ON|OFF]</b></li></ul>
+							<br>
+							To show who is invisible:
+							<ul><li><b>.in</b></li></ul>
+							To become invisible:
+							<ul><li><b>.in me on</b></li></ul>
+							To become visible:
+							<ul><li><b>.in me off</b></li></ul>
+							To make steve invisible:
+							<ul><li><b>.in steve on</b></li></ul>
+							To make steve visible:
+							<ul><li><b>.in me off</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Kick (.kick)
+						</li>
+						<li class="list__item intro">
+							This command allows you to kick a player. You may also specify a reason as to why they were kicked.
+							<br><br>
+							<ul><li><b>Usage: .kick [Player] {reason}</b></li></ul>
+							<br>To kick steve:
+							<ul><li><b>.kick steve</b></li></ul>
+							<br>To kick steve with the reason 'you were griefing':
+							<ul><li><b>.kick steve you were griefing</b></li></ul>
+							<b>NOTE: A kick is just a warning, the player can reconnect at any time. Use .ban for something more permanent.</b>
+						</li>
+
+						<li class="list__header">
+							Ban (.ban)
+						</li>
+						<li class="list__item intro">
+							This command allows you permanently ban a user. The user will not be able to join ANY of your worlds again while Plug is running. Use .unban to remove the ban.
+							<br><br>
+							<ul><li><b>Usage: .ban | .ban [Player] {reason}</b></li></ul>
+							<br>To see the ban list:
+							<ul><li><b>.ban</b></li></ul>
+							<br>To ban steve:
+							<ul><li><b>.ban steve</b></li></ul>
+							<br>To ban steve with the reason 'you were griefing':
+							<ul><li><b>.ban steve you were griefing</b></li></ul>
+							<b>NOTE: A ban uses both their name AND their device id. This means BOTH users with the same name and ANY users from that device will be banned.</b>
+						</li>
+
+						<li class="list__header">
+							Unban (.unban)
+						</li>
+						<li class="list__item intro">
+							This command allows you remove a ban your previously set.
+							<br><br>
+							<ul><li><b>Usage: .unban [Player]</b></li></ul>
+							<br>To unban steve:
+							<ul><li><b>.ban steve</b></li></ul>
+							<b>NOTE: Use .unban to see the ban list.</b>
+						</li>
+
+						<li class="list__header">
+							Message (.msg)
+						</li>
+						<li class="list__item intro">
+							This command allows you to send a private message to another player. Only you and the player you send this message to can see this message.
+							<br><br>
+							<ul><li><b>Usage: .msg [Player] [message]</b></li></ul>
+							<br>To send steve the message 'where are you?':
+							<ul><li><b>.msg steve where are you?</b></li></ul>
+							<b>NOTE: To start a chat conversation see the .chat command.</b>
+						</li>
+
+						<li class="list__header">
+							Chat (.chat)
+						</li>
+						<li class="list__item intro">
+							This command allows you start a private chat with another player. All chat messages will go directly to this player ONLY.
+							<br><br>
+							<ul><li><b>Usage: .chat off | .chat [Player] [message]</b></li></ul>
+							<br>To start a private chat with steve use the following command, then chat as normal.
+							<ul><li><b>.chat steve</b></li></ul>
+							<br>To stop the private chat:
+							<ul><li><b>.chat off</b></li></ul>
+						</li>
+
+                        <li class="list__header">
+                            Player Join Limit (.pl)
+                        </li>
+                        <li class="list__item intro">
+                            This command allows you to set a player join limit. Only the number of players you set will be allowed to join.
+                            <br><br>
+                            <ul><li><b>Usage: .pl [off] | [No of Players]</b></li></ul>
+                            <br>To check the current limit:
+                            <ul><li><b>.pl</b></li></ul>
+                            <br>To set the limit to 3 for example:
+                            <ul><li><b>.pl 3</b></li></ul>
+                            <br>To turn the limit off:
+                            <ul><li><b>.pl off</b></li></ul>
+                            <b>NOTE: If you set the limit to 1, no other players will be able to join.</b>
+                        </li>
+
+						<li class="list__header">
+							Friend Request (.fr)
+						</li>
+						<li class="list__item intro">
+							This command sends a friend request to another online player.  Remember you can manage your friends in the app as well by tapping your username in the title bar above, then tap 'Manage Friends'.
+							<br><br>
+							<ul><li><b>Usage: .fr</b></li></ul>
+							<br>To send steve a friend request:
+							<ul><li><b>.fr steve</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Friend Accept (.fa)
+						</li>
+						<li class="list__item intro">
+							This command accepts a friend request from another online player.  Remember you can manage your friends in the app as well by tapping your username in the title bar above, then tap 'Manage Friends'.
+							<br><br>
+							<ul><li><b>Usage: .fa</b></li></ul>
+							<br>To accept steve's request:
+							<ul><li><b>.fa steve</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Voice Chat On/Off (.v)
+						</li>
+						<li class="list__item intro">
+							This command turns on your Voice Chat. If you are the world owner, your microphone and speaker are switched on right away. Otherwise a request is sent to the world owner first.
+							<br><br>
+							<ul><li><b>Usage: .v on | off</b></li></ul>
+							<br>To turn on or request Voice Chat:
+							<ul><li><b>.v on</b></li></ul>
+							<br>To turn off Voice Chat, or to cancel your Voice Chat request:
+							<ul><li><b>.v off</b></li></ul>
+
+						</li>
+
+						<li class="list__header">
+							Voice Chat List (.vl)
+						</li>
+						<li class="list__item intro">
+							This command lists the current status of Voice Chat for all players. Remember only online players can use Voice Chat. 'NOT SUPPORTED' means the player is connected over Bluetooth or WiFi and not the internet.
+							<br><br>
+							<ul><li><b>Usage: .vl</b></li></ul>
+							<br>To list the current Voice Chat status:
+							<ul><li><b>.vl</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Voice Chat Accept (.va)
+						</li>
+						<li class="list__item intro">
+							This command accepts a Voice Chat request. Only the world owner may use this command.
+							<br><br>
+							<ul><li><b>Usage: .va [Player]</b></li></ul>
+							<br>To accept a request from steve:
+							<ul><li><b>.va steve</b></li></ul>
+							<br>To view requests or the general status of Voice Chat use the .vl command.
+							<ul><li><b>.vl</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Voice Chat Decline/Disable (.vd)
+						</li>
+						<li class="list__item intro">
+							This command declines a Voice Chat request OR disables Voice Chat for a player already chatting. You may also pass an optional reason when using this command.
+							<br><br>
+							<ul><li><b>Usage: .vd [Player] {Reason}</b></li></ul>
+							<br>To decline or disable steve's Voice Chat:
+							<ul><li><b>.vd steve</b></li></ul>
+							<br>To view requests or the general status of Voice Chat use the .vl command.
+							<ul><li><b>.vl</b></li></ul>
+						</li>
+
+						<li class="list__header">
+							Voice Chat volumes (.vd)
+						</li>
+						<li class="list__item intro">
+							This command alters the Voice Chat volume. Remember this is independant from the volume control on your device.  You should set the volume on your device to the level you like for MCPE sounds.  Then adjust the Voice volume using the .vv command to get the right balance.
+							<br><br>
+							<ul><li><b>Usage: .vv [volume]</b></li></ul>
+							<br>To change the volume to 5 (valid values are 0 to 10):
+							<ul><li><b>.vv 5</b></li></ul>
+							<br>To check the current volume:
+							<ul><li><b>.vv</b></li></ul>
+						</li>
+
+					</ul>
+					
+				</div>
+
+				<div id="item_help" style="display:none" class="helps helps-fixed">
+					<li class="list__header">
+						Introduction
+					</li>
+					<li class="list__item intro">
+						The give command can be used to Give you or another player an item or block. You may use either numbered ids or the Names in the tables below.
+						<br><br>
+						For example, to give yourself 1 iron sword use either the Name (IronSword) or id (267) for an iron sword:
+						<ul>
+						<li><b>.g ironsword</b></li>
+						<li><b>.g 267</b></li>
+						</ul>
+                        Some items have different types:
+                        <ul>
+                            <li><b>.g spawnegg:zombie</b></li>
+                        </ul>
+                        If you don't know the types, Plug will tell you what the options are. For example this command will tell you the various types of spawn egg available:
+                        <ul>
+                            <li><b>.g spawnegg</b></li>
+                        </ul>
+						You can also give yourself enchanted items. To give yourself 1 iron sword with enchantment Power level 2:
+						<ul>
+						<li><b>.g ironsword,power:2</b></li>
+						</ul>
+						To see all possible enchantments:
+						<ul>
+						<li><b>.g ironsword,help</b></li>
+						</ul>
+					</li>
+
+					<li class="list__header">
+						Blocks
+					</li>
+					<li class="list__item intro">
+						<table id="itemtable">
+<tr class='block_heading'><th></th><th>ID</th> <th>Name</th> <th>Description</th></tr><tr><td><img src="img/1_0.png"></td><td>1:0</td><td>Stone:Stone</td><td>Stone (Stone)</td></tr><tr><td><img src="img/1_1.png"></td><td>1:1</td><td>Stone:Granite</td><td>Stone (Granite)</td></tr><tr><td><img src="img/1_2.png"></td><td>1:2</td><td>Stone:PolishedGranite</td><td>Stone (Polished Granite)</td></tr><tr><td><img src="img/1_3.png"></td><td>1:3</td><td>Stone:Diorite</td><td>Stone (Diorite)</td></tr><tr><td><img src="img/1_4.png"></td><td>1:4</td><td>Stone:PolishedDiorite</td><td>Stone (Polished Diorite)</td></tr><tr><td><img src="img/1_5.png"></td><td>1:5</td><td>Stone:Andesite</td><td>Stone (Andesite)</td></tr><tr><td><img src="img/1_6.png"></td><td>1:6</td><td>Stone:PolishedAndesite</td><td>Stone (Polished Andesite)</td></tr><tr><td><img src="img/2.png"></td><td>2</td><td>GrassBlock</td><td>Grass Block</td></tr><tr><td><img src="img/3.png"></td><td>3</td><td>Dirt</td><td>Dirt</td></tr><tr><td><img src="img/4.png"></td><td>4</td><td>Cobblestone</td><td>Cobblestone</td></tr><tr><td><img src="img/5_0.png"></td><td>5:0</td><td>WoodenPlank:Oak</td><td>Wooden Plank (Oak)</td></tr><tr><td><img src="img/5_1.png"></td><td>5:1</td><td>WoodenPlank:Spruce</td><td>Wooden Plank (Spruce)</td></tr><tr><td><img src="img/5_2.png"></td><td>5:2</td><td>WoodenPlank:Birch</td><td>Wooden Plank (Birch)</td></tr><tr><td><img src="img/5_3.png"></td><td>5:3</td><td>WoodenPlank:Jungle</td><td>Wooden Plank (Jungle)</td></tr><tr><td><img src="img/5_4.png"></td><td>5:4</td><td>WoodenPlank:Acacia</td><td>Wooden Plank (Acacia)</td></tr><tr><td><img src="img/5_5.png"></td><td>5:5</td><td>WoodenPlank:DarkOak</td><td>Wooden Plank (Dark Oak)</td></tr><tr><td><img src="img/6_0.png"></td><td>6:0</td><td>Sapling:Oak</td><td>Sapling (Oak)</td></tr><tr><td><img src="img/6_1.png"></td><td>6:1</td><td>Sapling:Spruce</td><td>Sapling (Spruce)</td></tr><tr><td><img src="img/6_2.png"></td><td>6:2</td><td>Sapling:Birch</td><td>Sapling (Birch)</td></tr><tr><td><img src="img/6_3.png"></td><td>6:3</td><td>Sapling:Jungle</td><td>Sapling (Jungle)</td></tr><tr><td><img src="img/6_4.png"></td><td>6:4</td><td>Sapling:Acacia</td><td>Sapling (Acacia)</td></tr><tr><td><img src="img/6_5.png"></td><td>6:5</td><td>Sapling:DarkOak</td><td>Sapling (Dark Oak)</td></tr><tr><td><img src="img/7.png"></td><td>7</td><td>Bedrock</td><td>Bedrock</td></tr><tr><td><img src="img/8.png"></td><td>8</td><td>Water</td><td>Water</td></tr><tr><td><img src="img/9.png"></td><td>9</td><td>StationaryWater</td><td>Stationary Water</td></tr><tr><td><img src="img/10.png"></td><td>10</td><td>Lava</td><td>Lava</td></tr><tr><td><img src="img/11.png"></td><td>11</td><td>StationaryLava</td><td>Stationary Lava</td></tr><tr><td><img src="img/12_0.png"></td><td>12:0</td><td>Sand:White</td><td>Sand (White)</td></tr><tr><td><img src="img/12_1.png"></td><td>12:1</td><td>Sand:Red</td><td>Sand (Red)</td></tr><tr><td><img src="img/13.png"></td><td>13</td><td>Gravel</td><td>Gravel</td></tr><tr><td><img src="img/14.png"></td><td>14</td><td>GoldOre</td><td>Gold Ore</td></tr><tr><td><img src="img/15.png"></td><td>15</td><td>IronOre</td><td>Iron Ore</td></tr><tr><td><img src="img/16.png"></td><td>16</td><td>CoalOre</td><td>Coal Ore</td></tr><tr><td><img src="img/17_0.png"></td><td>17:0</td><td>Wood:Oak</td><td>Wood (Oak)</td></tr><tr><td><img src="img/17_1.png"></td><td>17:1</td><td>Wood:Spruce</td><td>Wood (Spruce)</td></tr><tr><td><img src="img/17_2.png"></td><td>17:2</td><td>Wood:Birch</td><td>Wood (Birch)</td></tr><tr><td><img src="img/17_3.png"></td><td>17:3</td><td>Wood:Jungle</td><td>Wood (Jungle)</td></tr><tr><td><img src="img/18_0.png"></td><td>18:0</td><td>Leaves:Oak</td><td>Leaves (Oak)</td></tr><tr><td><img src="img/18_1.png"></td><td>18:1</td><td>Leaves:Spruce</td><td>Leaves (Spruce)</td></tr><tr><td><img src="img/18_2.png"></td><td>18:2</td><td>Leaves:Birch</td><td>Leaves (Birch)</td></tr><tr><td><img src="img/18_3.png"></td><td>18:3</td><td>Leaves:Jungle</td><td>Leaves (Jungle)</td></tr><tr><td><img src="img/18_4.png"></td><td>18:4</td><td>Leaves:OakNoDecay</td><td>Leaves (Oak No Decay)</td></tr><tr><td><img src="img/18_5.png"></td><td>18:5</td><td>Leaves:SpruceNoDecay</td><td>Leaves (Spruce No Decay)</td></tr><tr><td><img src="img/18_6.png"></td><td>18:6</td><td>Leaves:BirchNoDecay</td><td>Leaves (Birch No Decay)</td></tr><tr><td><img src="img/18_7.png"></td><td>18:7</td><td>Leaves:JungleNoDecay</td><td>Leaves (Jungle No Decay)</td></tr><tr><td><img src="img/19.png"></td><td>19</td><td>Sponge</td><td>Sponge</td></tr><tr><td><img src="img/20.png"></td><td>20</td><td>Glass</td><td>Glass</td></tr><tr><td><img src="img/21.png"></td><td>21</td><td>LapisLazuliOre</td><td>Lapis Lazuli Ore</td></tr><tr><td><img src="img/22.png"></td><td>22</td><td>LapisLazuliBlock</td><td>Lapis Lazuli Block</td></tr><tr><td><img src="img/24_0.png"></td><td>24:0</td><td>Sandstone:Normal</td><td>Sandstone (Normal)</td></tr><tr><td><img src="img/24_1.png"></td><td>24:1</td><td>Sandstone:Chiseled</td><td>Sandstone (Chiseled)</td></tr><tr><td><img src="img/24_2.png"></td><td>24:2</td><td>Sandstone:Smooth</td><td>Sandstone (Smooth)</td></tr><tr><td><img src="img/24_3.png"></td><td>24:3</td><td>Sandstone:Fine</td><td>Sandstone (Fine)</td></tr><tr><td><img src="img/24_4.png"></td><td>24:4</td><td>Sandstone:Course</td><td>Sandstone (Course)</td></tr><tr><td><img src="img/24_5.png"></td><td>24:5</td><td>Sandstone:VerySmooth</td><td>Sandstone (Very Smooth)</td></tr><tr><td><img src="img/26.png"></td><td>26</td><td>BedBlock</td><td>Bed Block</td></tr><tr><td><img src="img/27.png"></td><td>27</td><td>PoweredRail</td><td>Powered Rail</td></tr><tr><td><img src="img/30.png"></td><td>30</td><td>Cobweb</td><td>Cobweb</td></tr><tr><td><img src="img/31_0.png"></td><td>31:0</td><td>Grass:FernGrass</td><td>Grass (Fern Grass)</td></tr><tr><td><img src="img/31_1.png"></td><td>31:1</td><td>Grass:Normal</td><td>Grass (Normal)</td></tr><tr><td><img src="img/31_2.png"></td><td>31:2</td><td>Grass:Fern</td><td>Grass (Fern)</td></tr><tr><td><img src="img/31_3.png"></td><td>31:3</td><td>Grass:LargeFern</td><td>Grass (Large Fern)</td></tr><tr><td><img src="img/32.png"></td><td>32</td><td>DeadBush</td><td>Dead Bush</td></tr><tr><td><img src="img/35_0.png"></td><td>35:0</td><td>Wool:White</td><td>Wool (White)</td></tr><tr><td><img src="img/35_1.png"></td><td>35:1</td><td>Wool:Orange</td><td>Wool (Orange)</td></tr><tr><td><img src="img/35_2.png"></td><td>35:2</td><td>Wool:Magenta</td><td>Wool (Magenta)</td></tr><tr><td><img src="img/35_3.png"></td><td>35:3</td><td>Wool:LightBlue</td><td>Wool (Light Blue)</td></tr><tr><td><img src="img/35_4.png"></td><td>35:4</td><td>Wool:Yellow</td><td>Wool (Yellow)</td></tr><tr><td><img src="img/35_5.png"></td><td>35:5</td><td>Wool:Lime</td><td>Wool (Lime)</td></tr><tr><td><img src="img/35_6.png"></td><td>35:6</td><td>Wool:Pink</td><td>Wool (Pink)</td></tr><tr><td><img src="img/35_7.png"></td><td>35:7</td><td>Wool:Gray</td><td>Wool (Gray)</td></tr><tr><td><img src="img/35_8.png"></td><td>35:8</td><td>Wool:LightGray</td><td>Wool (Light Gray)</td></tr><tr><td><img src="img/35_9.png"></td><td>35:9</td><td>Wool:Cyan</td><td>Wool (Cyan)</td></tr><tr><td><img src="img/35_10.png"></td><td>35:10</td><td>Wool:Purple</td><td>Wool (Purple)</td></tr><tr><td><img src="img/35_11.png"></td><td>35:11</td><td>Wool:Blue</td><td>Wool (Blue)</td></tr><tr><td><img src="img/35_12.png"></td><td>35:12</td><td>Wool:Brown</td><td>Wool (Brown)</td></tr><tr><td><img src="img/35_13.png"></td><td>35:13</td><td>Wool:Green</td><td>Wool (Green)</td></tr><tr><td><img src="img/35_14.png"></td><td>35:14</td><td>Wool:Red</td><td>Wool (Red)</td></tr><tr><td><img src="img/35_15.png"></td><td>35:15</td><td>Wool:Black</td><td>Wool (Black)</td></tr><tr><td><img src="img/37.png"></td><td>37</td><td>Dandelion</td><td>Dandelion</td></tr><tr><td><img src="img/38_0.png"></td><td>38:0</td><td>Flowers:Poppy</td><td>Flowers (Poppy)</td></tr><tr><td><img src="img/38_1.png"></td><td>38:1</td><td>Flowers:BlueOrchid</td><td>Flowers (Blue Orchid)</td></tr><tr><td><img src="img/38_2.png"></td><td>38:2</td><td>Flowers:Allium</td><td>Flowers (Allium)</td></tr><tr><td><img src="img/38_3.png"></td><td>38:3</td><td>Flowers:AzureBluet</td><td>Flowers (Azure Bluet)</td></tr><tr><td><img src="img/38_4.png"></td><td>38:4</td><td>Flowers:RedTulip</td><td>Flowers (Red Tulip)</td></tr><tr><td><img src="img/38_5.png"></td><td>38:5</td><td>Flowers:OrangeTulip</td><td>Flowers (Orange Tulip)</td></tr><tr><td><img src="img/38_6.png"></td><td>38:6</td><td>Flowers:WhiteTulip</td><td>Flowers (White Tulip)</td></tr><tr><td><img src="img/38_7.png"></td><td>38:7</td><td>Flowers:PinkTulip</td><td>Flowers (Pink Tulip)</td></tr><tr><td><img src="img/38_8.png"></td><td>38:8</td><td>Flowers:OxeyeDaisy</td><td>Flowers (Oxeye Daisy)</td></tr><tr><td><img src="img/39.png"></td><td>39</td><td>BrownMushroom</td><td>Brown Mushroom</td></tr><tr><td><img src="img/40.png"></td><td>40</td><td>RedMushroom</td><td>Red Mushroom</td></tr><tr><td><img src="img/41.png"></td><td>41</td><td>GoldBlock</td><td>Gold Block</td></tr><tr><td><img src="img/42.png"></td><td>42</td><td>IronBlock</td><td>Iron Block</td></tr><tr><td><img src="img/43.png"></td><td>43</td><td>DoubleStoneSlab</td><td>Double Stone Slab</td></tr><tr><td><img src="img/44_0.png"></td><td>44:0</td><td>Slab:Stone</td><td>Slab (Stone)</td></tr><tr><td><img src="img/44_1.png"></td><td>44:1</td><td>Slab:Sandstone</td><td>Slab (Sandstone)</td></tr><tr><td><img src="img/44_2.png"></td><td>44:2</td><td>Slab:Wood</td><td>Slab (Wood)</td></tr><tr><td><img src="img/44_3.png"></td><td>44:3</td><td>Slab:Cobblestone</td><td>Slab (Cobblestone)</td></tr><tr><td><img src="img/44_4.png"></td><td>44:4</td><td>Slab:Bricks</td><td>Slab (Bricks)</td></tr><tr><td><img src="img/44_5.png"></td><td>44:5</td><td>Slab:StoneBricks</td><td>Slab (Stone Bricks)</td></tr><tr><td><img src="img/44_6.png"></td><td>44:6</td><td>Slab:Quartz</td><td>Slab (Quartz)</td></tr><tr><td><img src="img/44_7.png"></td><td>44:7</td><td>Slab:NetherBrick</td><td>Slab (Nether Brick)</td></tr><tr><td><img src="img/44_8.png"></td><td>44:8</td><td>Slab:UpperStone</td><td>Slab (Upper Stone)</td></tr><tr><td><img src="img/44_9.png"></td><td>44:9</td><td>Slab:UpperSandstone</td><td>Slab (Upper Sandstone)</td></tr><tr><td><img src="img/44_10.png"></td><td>44:10</td><td>Slab:UpperFakeWood</td><td>Slab (Upper Fake Wood)</td></tr><tr><td><img src="img/44_11.png"></td><td>44:11</td><td>Slab:UpperCobblestone</td><td>Slab (Upper Cobblestone)</td></tr><tr><td><img src="img/44_12.png"></td><td>44:12</td><td>Slab:UpperBricks</td><td>Slab (Upper Bricks)</td></tr><tr><td><img src="img/44_13.png"></td><td>44:13</td><td>Slab:UpperStoneBricks</td><td>Slab (Upper Stone Bricks)</td></tr><tr><td><img src="img/44_14.png"></td><td>44:14</td><td>Slab:UpperQuartz</td><td>Slab (Upper Quartz)</td></tr><tr><td><img src="img/44_15.png"></td><td>44:15</td><td>Slab:UpperNetherBrick</td><td>Slab (Upper Nether Brick)</td></tr><tr><td><img src="img/45.png"></td><td>45</td><td>BrickBlock</td><td>Brick Block</td></tr><tr><td><img src="img/46.png"></td><td>46</td><td>TNT</td><td>TNT</td></tr><tr><td><img src="img/47.png"></td><td>47</td><td>BookShelf</td><td>BookShelf</td></tr><tr><td><img src="img/48.png"></td><td>48</td><td>MossStone</td><td>Moss Stone</td></tr><tr><td><img src="img/49.png"></td><td>49</td><td>Obsidian</td><td>Obsidian</td></tr><tr><td><img src="img/50.png"></td><td>50</td><td>Torch</td><td>Torch</td></tr><tr><td><img src="img/51.png"></td><td>51</td><td>Fire</td><td>Fire</td></tr><tr><td><img src="img/52.png"></td><td>52</td><td>MonsterSpawner</td><td>Monster Spawner</td></tr><tr><td><img src="img/53.png"></td><td>53</td><td>OakWoodStairs</td><td>Oak Wood Stairs</td></tr><tr><td><img src="img/54.png"></td><td>54</td><td>Chest</td><td>Chest</td></tr><tr><td><img src="img/56.png"></td><td>56</td><td>DiamondOre</td><td>Diamond Ore</td></tr><tr><td><img src="img/57.png"></td><td>57</td><td>DiamondBlock</td><td>Diamond Block</td></tr><tr><td><img src="img/58.png"></td><td>58</td><td>CraftingTable</td><td>Crafting Table</td></tr><tr><td><img src="img/59.png"></td><td>59</td><td>Crops</td><td>Crops</td></tr><tr><td><img src="img/60.png"></td><td>60</td><td>FarmLand</td><td>FarmLand</td></tr><tr><td><img src="img/61.png"></td><td>61</td><td>Furnace</td><td>Furnace</td></tr><tr><td><img src="img/62.png"></td><td>62</td><td>BurningFurnace</td><td>Burning Furnace</td></tr><tr><td><img src="img/63.png"></td><td>63</td><td>SignPost</td><td>Sign Post</td></tr><tr><td><img src="img/64.png"></td><td>64</td><td>WoodenDoorBlock</td><td>Wooden Door Block</td></tr><tr><td><img src="img/65.png"></td><td>65</td><td>Ladder</td><td>Ladder</td></tr><tr><td><img src="img/66.png"></td><td>66</td><td>Rail</td><td>Rail</td></tr><tr><td><img src="img/67.png"></td><td>67</td><td>CobblestoneStairs</td><td>Cobblestone Stairs</td></tr><tr><td><img src="img/68.png"></td><td>68</td><td>WallSign</td><td>Wall Sign</td></tr><tr><td><img src="img/71.png"></td><td>71</td><td>IronDoorBlock</td><td>Iron Door Block</td></tr><tr><td><img src="img/73.png"></td><td>73</td><td>RedstoneOre</td><td>Redstone Ore</td></tr><tr><td><img src="img/74.png"></td><td>74</td><td>GlowingRedstoneOre</td><td>Glowing Redstone Ore</td></tr><tr><td><img src="img/78_0.png"></td><td>78:0</td><td>SnowCover:Thickness0</td><td>Snow Cover (Thickness 0)</td></tr><tr><td><img src="img/78_1.png"></td><td>78:1</td><td>SnowCover:Thickness1</td><td>Snow Cover (Thickness 1)</td></tr><tr><td><img src="img/78_2.png"></td><td>78:2</td><td>SnowCover:Thickness2</td><td>Snow Cover (Thickness 2)</td></tr><tr><td><img src="img/78_3.png"></td><td>78:3</td><td>SnowCover:Thickness3</td><td>Snow Cover (Thickness 3)</td></tr><tr><td><img src="img/78_4.png"></td><td>78:4</td><td>SnowCover:Thickness4</td><td>Snow Cover (Thickness 4)</td></tr><tr><td><img src="img/78_5.png"></td><td>78:5</td><td>SnowCover:Thickness5</td><td>Snow Cover (Thickness 5)</td></tr><tr><td><img src="img/78_6.png"></td><td>78:6</td><td>SnowCover:Thickness6</td><td>Snow Cover (Thickness 6)</td></tr><tr><td><img src="img/78_7.png"></td><td>78:7</td><td>SnowCover:Thickness7</td><td>Snow Cover (Thickness 7)</td></tr><tr><td><img src="img/79.png"></td><td>79</td><td>Ice</td><td>Ice</td></tr><tr><td><img src="img/80.png"></td><td>80</td><td>Snow</td><td>Snow</td></tr><tr><td><img src="img/81.png"></td><td>81</td><td>Cactus</td><td>Cactus</td></tr><tr><td><img src="img/82.png"></td><td>82</td><td>ClayBlock</td><td>Clay Block</td></tr><tr><td><img src="img/83.png"></td><td>83</td><td>SugarCaneBlock</td><td>Sugar Cane Block</td></tr><tr><td><img src="img/85_0.png"></td><td>85:0</td><td>Fence:Oak</td><td>Fence (Oak)</td></tr><tr><td><img src="img/85_1.png"></td><td>85:1</td><td>Fence:Spruce</td><td>Fence (Spruce)</td></tr><tr><td><img src="img/85_2.png"></td><td>85:2</td><td>Fence:Birch</td><td>Fence (Birch)</td></tr><tr><td><img src="img/85_3.png"></td><td>85:3</td><td>Fence:Jungle</td><td>Fence (Jungle)</td></tr><tr><td><img src="img/85_4.png"></td><td>85:4</td><td>Fence:Acacia</td><td>Fence (Acacia)</td></tr><tr><td><img src="img/85_5.png"></td><td>85:5</td><td>Fence:DarkOak</td><td>Fence (Dark Oak)</td></tr><tr><td><img src="img/86.png"></td><td>86</td><td>Pumpkin</td><td>Pumpkin</td></tr><tr><td><img src="img/87.png"></td><td>87</td><td>Netherrack</td><td>Netherrack</td></tr><tr><td><img src="img/88.png"></td><td>88</td><td>SoulSand</td><td>Soul Sand</td></tr><tr><td><img src="img/89.png"></td><td>89</td><td>Glowstone</td><td>Glowstone</td></tr><tr><td><img src="img/90.png"></td><td>90</td><td>Portal</td><td>Portal</td></tr><tr><td><img src="img/91.png"></td><td>91</td><td>JackoLantern</td><td>Jack oLantern</td></tr><tr><td><img src="img/92.png"></td><td>92</td><td>CakeBlock</td><td>Cake Block</td></tr><tr><td><img src="img/95.png"></td><td>95</td><td>InvisibleBedrock</td><td>Invisible Bedrock</td></tr><tr><td><img src="img/96.png"></td><td>96</td><td>Trapdoor</td><td>Trapdoor</td></tr><tr><td><img src="img/97_0.png"></td><td>97:0</td><td>MonsterEgg:Stone</td><td>Monster Egg (Stone)</td></tr><tr><td><img src="img/97_1.png"></td><td>97:1</td><td>MonsterEgg:Cobblestone</td><td>Monster Egg (Cobblestone)</td></tr><tr><td><img src="img/97_2.png"></td><td>97:2</td><td>MonsterEgg:StoneBrick</td><td>Monster Egg (Stone Brick)</td></tr><tr><td><img src="img/97_3.png"></td><td>97:3</td><td>MonsterEgg:Mossy</td><td>Monster Egg (Mossy)</td></tr><tr><td><img src="img/97_4.png"></td><td>97:4</td><td>MonsterEgg:CrackedStone</td><td>Monster Egg (Cracked Stone)</td></tr><tr><td><img src="img/97_5.png"></td><td>97:5</td><td>MonsterEgg:ChiseledStone</td><td>Monster Egg (Chiseled Stone)</td></tr><tr><td><img src="img/98_0.png"></td><td>98:0</td><td>StoneBrick:Normal</td><td>Stone Brick (Normal)</td></tr><tr><td><img src="img/98_1.png"></td><td>98:1</td><td>StoneBrick:Mossy</td><td>Stone Brick (Mossy)</td></tr><tr><td><img src="img/98_2.png"></td><td>98:2</td><td>StoneBrick:Cracked</td><td>Stone Brick (Cracked)</td></tr><tr><td><img src="img/98_3.png"></td><td>98:3</td><td>StoneBrick:Chiseled</td><td>Stone Brick (Chiseled)</td></tr><tr><td><img src="img/98_4.png"></td><td>98:4</td><td>StoneBrick:SmoothBricks</td><td>Stone Brick (SmoothBricks)</td></tr><tr><td><img src="img/98_5.png"></td><td>98:5</td><td>StoneBrick:Bricks</td><td>Stone Brick (Bricks)</td></tr><tr><td><img src="img/99_0.png"></td><td>99:0</td><td>HugeBrownMushroom:Type0</td><td>Huge Brown Mushroom (Type 0)</td></tr><tr><td><img src="img/99_1.png"></td><td>99:1</td><td>HugeBrownMushroom:Type1</td><td>Huge Brown Mushroom (Type 1)</td></tr><tr><td><img src="img/99_2.png"></td><td>99:2</td><td>HugeBrownMushroom:Type2</td><td>Huge Brown Mushroom (Type 2)</td></tr><tr><td><img src="img/99_3.png"></td><td>99:3</td><td>HugeBrownMushroom:Type3</td><td>Huge Brown Mushroom (Type 3)</td></tr><tr><td><img src="img/99_4.png"></td><td>99:4</td><td>HugeBrownMushroom:Type4</td><td>Huge Brown Mushroom (Type 4)</td></tr><tr><td><img src="img/99_5.png"></td><td>99:5</td><td>HugeBrownMushroom:Type5</td><td>Huge Brown Mushroom (Type 5)</td></tr><tr><td><img src="img/99_6.png"></td><td>99:6</td><td>HugeBrownMushroom:Type6</td><td>Huge Brown Mushroom (Type 6)</td></tr><tr><td><img src="img/99_7.png"></td><td>99:7</td><td>HugeBrownMushroom:Type7</td><td>Huge Brown Mushroom (Type 7)</td></tr><tr><td><img src="img/99_8.png"></td><td>99:8</td><td>HugeBrownMushroom:Type8</td><td>Huge Brown Mushroom (Type 8)</td></tr><tr><td><img src="img/99_9.png"></td><td>99:9</td><td>HugeBrownMushroom:Type9</td><td>Huge Brown Mushroom (Type 9)</td></tr><tr><td><img src="img/99_10.png"></td><td>99:10</td><td>HugeBrownMushroom:Type10</td><td>Huge Brown Mushroom (Type 10)</td></tr><tr><td><img src="img/99_11.png"></td><td>99:11</td><td>HugeBrownMushroom:Type11</td><td>Huge Brown Mushroom (Type 11)</td></tr><tr><td><img src="img/99_12.png"></td><td>99:12</td><td>HugeBrownMushroom:Type12</td><td>Huge Brown Mushroom (Type 12)</td></tr><tr><td><img src="img/99_13.png"></td><td>99:13</td><td>HugeBrownMushroom:Type13</td><td>Huge Brown Mushroom (Type 13)</td></tr><tr><td><img src="img/99_14.png"></td><td>99:14</td><td>HugeBrownMushroom:Type14</td><td>Huge Brown Mushroom (Type 14)</td></tr><tr><td><img src="img/99_15.png"></td><td>99:15</td><td>HugeBrownMushroom:Type15</td><td>Huge Brown Mushroom (Type 15)</td></tr><tr><td><img src="img/100_0.png"></td><td>100:0</td><td>HugeRedMushroom:Type0</td><td>Huge Red Mushroom (Type 0)</td></tr><tr><td><img src="img/100_1.png"></td><td>100:1</td><td>HugeRedMushroom:Type1</td><td>Huge Red Mushroom (Type 1)</td></tr><tr><td><img src="img/100_2.png"></td><td>100:2</td><td>HugeRedMushroom:Type2</td><td>Huge Red Mushroom (Type 2)</td></tr><tr><td><img src="img/100_3.png"></td><td>100:3</td><td>HugeRedMushroom:Type3</td><td>Huge Red Mushroom (Type 3)</td></tr><tr><td><img src="img/100_4.png"></td><td>100:4</td><td>HugeRedMushroom:Type4</td><td>Huge Red Mushroom (Type 4)</td></tr><tr><td><img src="img/100_5.png"></td><td>100:5</td><td>HugeRedMushroom:Type5</td><td>Huge Red Mushroom (Type 5)</td></tr><tr><td><img src="img/100_6.png"></td><td>100:6</td><td>HugeRedMushroom:Type6</td><td>Huge Red Mushroom (Type 6)</td></tr><tr><td><img src="img/100_7.png"></td><td>100:7</td><td>HugeRedMushroom:Type7</td><td>Huge Red Mushroom (Type 7)</td></tr><tr><td><img src="img/100_8.png"></td><td>100:8</td><td>HugeRedMushroom:Type8</td><td>Huge Red Mushroom (Type 8)</td></tr><tr><td><img src="img/100_9.png"></td><td>100:9</td><td>HugeRedMushroom:Type9</td><td>Huge Red Mushroom (Type 9)</td></tr><tr><td><img src="img/100_10.png"></td><td>100:10</td><td>HugeRedMushroom:Type10</td><td>Huge Red Mushroom (Type 10)</td></tr><tr><td><img src="img/100_11.png"></td><td>100:11</td><td>HugeRedMushroom:Type11</td><td>Huge Red Mushroom (Type 11)</td></tr><tr><td><img src="img/100_12.png"></td><td>100:12</td><td>HugeRedMushroom:Type12</td><td>Huge Red Mushroom (Type 12)</td></tr><tr><td><img src="img/100_13.png"></td><td>100:13</td><td>HugeRedMushroom:Type13</td><td>Huge Red Mushroom (Type 13)</td></tr><tr><td><img src="img/100_14.png"></td><td>100:14</td><td>HugeRedMushroom:Type14</td><td>Huge Red Mushroom (Type 14)</td></tr><tr><td><img src="img/100_15.png"></td><td>100:15</td><td>HugeRedMushroom:Type15</td><td>Huge Red Mushroom (Type 15)</td></tr><tr><td><img src="img/101.png"></td><td>101</td><td>IronBars</td><td>Iron Bars</td></tr><tr><td><img src="img/102.png"></td><td>102</td><td>GlassPane</td><td>Glass Pane</td></tr><tr><td><img src="img/103.png"></td><td>103</td><td>MelonBlock</td><td>Melon Block</td></tr><tr><td><img src="img/104.png"></td><td>104</td><td>PumpkinStem</td><td>Pumpkin Stem</td></tr><tr><td><img src="img/105.png"></td><td>105</td><td>MelonStem</td><td>Melon Stem</td></tr><tr><td><img src="img/106.png"></td><td>106</td><td>Vines</td><td>Vines</td></tr><tr><td><img src="img/107.png"></td><td>107</td><td>FenceGate</td><td>Fence Gate</td></tr><tr><td><img src="img/108.png"></td><td>108</td><td>BrickStairs</td><td>Brick Stairs</td></tr><tr><td><img src="img/109.png"></td><td>109</td><td>StoneBrickStairs</td><td>Stone Brick Stairs</td></tr><tr><td><img src="img/110.png"></td><td>110</td><td>Mycelium</td><td>Mycelium</td></tr><tr><td><img src="img/111.png"></td><td>111</td><td>LilyPad</td><td>Lily Pad</td></tr><tr><td><img src="img/112.png"></td><td>112</td><td>NetherBrickBlock</td><td>Nether Brick Block</td></tr><tr><td><img src="img/113.png"></td><td>113</td><td>NetherBrickFence</td><td>Nether Brick Fence</td></tr><tr><td><img src="img/114.png"></td><td>114</td><td>NetherBrickStairs</td><td>Nether Brick Stairs</td></tr><tr><td><img src="img/115_0.png"></td><td>115:0</td><td>NetherWart:Small</td><td>Nether Wart (Small)</td></tr><tr><td><img src="img/115_1.png"></td><td>115:1</td><td>NetherWart:Medium</td><td>Nether Wart (Medium)</td></tr><tr><td><img src="img/115_2.png"></td><td>115:2</td><td>NetherWart:Large</td><td>Nether Wart (Large)</td></tr><tr><td><img src="img/115_3.png"></td><td>115:3</td><td>NetherWart:Grown</td><td>Nether Wart (Grown)</td></tr><tr><td><img src="img/116.png"></td><td>116</td><td>EnchantmentTable</td><td>Enchantment Table</td></tr><tr><td><img src="img/117.png"></td><td>117</td><td>BrewingStandBlock</td><td>Brewing Stand Block</td></tr><tr><td><img src="img/120.png"></td><td>120</td><td>EndPortalFrame</td><td>End Portal Frame</td></tr><tr><td><img src="img/121.png"></td><td>121</td><td>EndStone</td><td>End Stone</td></tr><tr><td><img src="img/126.png"></td><td>126</td><td>CakeMystery</td><td>Cake Mystery</td></tr><tr><td><img src="img/127.png"></td><td>127</td><td>Cocoa</td><td>Cocoa</td></tr><tr><td><img src="img/128.png"></td><td>128</td><td>SandstoneStairs</td><td>Sandstone Stairs</td></tr><tr><td><img src="img/129.png"></td><td>129</td><td>EmeraldOre</td><td>Emerald Ore</td></tr><tr><td><img src="img/133.png"></td><td>133</td><td>BlockofEmerald</td><td>Block of Emerald</td></tr><tr><td><img src="img/134.png"></td><td>134</td><td>SpruceWoodStairs</td><td>Spruce Wood Stairs</td></tr><tr><td><img src="img/135.png"></td><td>135</td><td>BirchWoodStairs</td><td>Birch Wood Stairs</td></tr><tr><td><img src="img/136.png"></td><td>136</td><td>JungleWoodStairs</td><td>Jungle Wood Stairs</td></tr><tr><td><img src="img/139_0.png"></td><td>139:0</td><td>CobblestoneWall:Normal</td><td>Cobblestone Wall (Normal)</td></tr><tr><td><img src="img/139_1.png"></td><td>139:1</td><td>CobblestoneWall:Mossy</td><td>Cobblestone Wall (Mossy)</td></tr><tr><td><img src="img/140.png"></td><td>140</td><td>FlowerPotTile</td><td>Flower Pot Tile</td></tr><tr><td><img src="img/141.png"></td><td>141</td><td>Carrots</td><td>Carrots</td></tr><tr><td><img src="img/142.png"></td><td>142</td><td>Potatos</td><td>Potatos</td></tr><tr><td><img src="img/144.png"></td><td>144</td><td>MobHead</td><td>Mob Head</td></tr><tr><td><img src="img/145_0.png"></td><td>145:0</td><td>Anvil:Normal</td><td>Anvil (Normal)</td></tr><tr><td><img src="img/145_1.png"></td><td>145:1</td><td>Anvil:SlightlyDamaged</td><td>Anvil (SlightlyDamaged)</td></tr><tr><td><img src="img/145_2.png"></td><td>145:2</td><td>Anvil:VeryDamaged</td><td>Anvil (VeryDamaged)</td></tr><tr><td><img src="img/152.png"></td><td>152</td><td>RedstoneBlock</td><td>Redstone Block</td></tr><tr><td><img src="img/153.png"></td><td>153</td><td>NetherQuartzBlock</td><td>Nether Quartz Block</td></tr><tr><td><img src="img/155_0.png"></td><td>155:0</td><td>Quartz:Block</td><td>Quartz (Block)</td></tr><tr><td><img src="img/155_1.png"></td><td>155:1</td><td>Quartz:Chiseled</td><td>Quartz (Chiseled)</td></tr><tr><td><img src="img/155_2.png"></td><td>155:2</td><td>Quartz:Pillar</td><td>Quartz (Pillar)</td></tr><tr><td><img src="img/156.png"></td><td>156</td><td>QuartzStairs</td><td>Quartz Stairs</td></tr><tr><td><img src="img/157.png"></td><td>157</td><td>DoubleOakWoodSlab</td><td>Double Oak Wood Slab</td></tr><tr><td><img src="img/158.png"></td><td>158</td><td>OakWoodSlab</td><td>Oak Wood Slab</td></tr><tr><td><img src="img/159_0.png"></td><td>159:0</td><td>StainedClay:White</td><td>Stained Clay (White)</td></tr><tr><td><img src="img/159_1.png"></td><td>159:1</td><td>StainedClay:Orange</td><td>Stained Clay (Orange)</td></tr><tr><td><img src="img/159_2.png"></td><td>159:2</td><td>StainedClay:Magenta</td><td>Stained Clay (Magenta)</td></tr><tr><td><img src="img/159_3.png"></td><td>159:3</td><td>StainedClay:LightBlue</td><td>Stained Clay (Light Blue)</td></tr><tr><td><img src="img/159_4.png"></td><td>159:4</td><td>StainedClay:Yellow</td><td>Stained Clay (Yellow)</td></tr><tr><td><img src="img/159_5.png"></td><td>159:5</td><td>StainedClay:Lime</td><td>Stained Clay (Lime)</td></tr><tr><td><img src="img/159_6.png"></td><td>159:6</td><td>StainedClay:Pink</td><td>Stained Clay (Pink)</td></tr><tr><td><img src="img/159_7.png"></td><td>159:7</td><td>StainedClay:Gray</td><td>Stained Clay (Gray)</td></tr><tr><td><img src="img/159_8.png"></td><td>159:8</td><td>StainedClay:LightGray</td><td>Stained Clay (Light Gray)</td></tr><tr><td><img src="img/159_9.png"></td><td>159:9</td><td>StainedClay:Cyan</td><td>Stained Clay (Cyan)</td></tr><tr><td><img src="img/159_10.png"></td><td>159:10</td><td>StainedClay:Purple</td><td>Stained Clay (Purple)</td></tr><tr><td><img src="img/159_11.png"></td><td>159:11</td><td>StainedClay:Blue</td><td>Stained Clay (Blue)</td></tr><tr><td><img src="img/159_12.png"></td><td>159:12</td><td>StainedClay:Brown</td><td>Stained Clay (Brown)</td></tr><tr><td><img src="img/159_13.png"></td><td>159:13</td><td>StainedClay:Green</td><td>Stained Clay (Green)</td></tr><tr><td><img src="img/159_14.png"></td><td>159:14</td><td>StainedClay:Red</td><td>Stained Clay (Red)</td></tr><tr><td><img src="img/159_15.png"></td><td>159:15</td><td>StainedClay:Black</td><td>Stained Clay (Black)</td></tr><tr><td><img src="img/161_0.png"></td><td>161:0</td><td>AcaciaLeaves:Normal</td><td>Acacia Leaves (Normal)</td></tr><tr><td><img src="img/161_1.png"></td><td>161:1</td><td>AcaciaLeaves:DarkOak</td><td>Acacia Leaves (Dark Oak)</td></tr><tr><td><img src="img/161_2.png"></td><td>161:2</td><td>AcaciaLeaves:OakNoDecay</td><td>Acacia Leaves (Oak No Decay)</td></tr><tr><td><img src="img/161_3.png"></td><td>161:3</td><td>AcaciaLeaves:SpruceNoDecay</td><td>Acacia Leaves (Spruce No Decay)</td></tr><tr><td><img src="img/162_0.png"></td><td>162:0</td><td>AcaciaWood:Normal</td><td>Acacia Wood (Normal)</td></tr><tr><td><img src="img/162_1.png"></td><td>162:1</td><td>AcaciaWood:DarkOak</td><td>Acacia Wood (Dark Oak)</td></tr><tr><td><img src="img/163.png"></td><td>163</td><td>AcaciaWoodStairs</td><td>Acacia Wood Stairs</td></tr><tr><td><img src="img/164.png"></td><td>164</td><td>DarkOakWoodStairs</td><td>Dark Oak Wood Stairs</td></tr><tr><td><img src="img/170.png"></td><td>170</td><td>HayBlock</td><td>Hay Block</td></tr><tr><td><img src="img/171_0.png"></td><td>171:0</td><td>Carpet:White</td><td>Carpet (White)</td></tr><tr><td><img src="img/171_1.png"></td><td>171:1</td><td>Carpet:Orange</td><td>Carpet (Orange)</td></tr><tr><td><img src="img/171_2.png"></td><td>171:2</td><td>Carpet:Magenta</td><td>Carpet (Magenta)</td></tr><tr><td><img src="img/171_3.png"></td><td>171:3</td><td>Carpet:LightBlue</td><td>Carpet (Light Blue)</td></tr><tr><td><img src="img/171_4.png"></td><td>171:4</td><td>Carpet:Yellow</td><td>Carpet (Yellow)</td></tr><tr><td><img src="img/171_5.png"></td><td>171:5</td><td>Carpet:Lime</td><td>Carpet (Lime)</td></tr><tr><td><img src="img/171_6.png"></td><td>171:6</td><td>Carpet:Pink</td><td>Carpet (Pink)</td></tr><tr><td><img src="img/171_7.png"></td><td>171:7</td><td>Carpet:Gray</td><td>Carpet (Gray)</td></tr><tr><td><img src="img/171_8.png"></td><td>171:8</td><td>Carpet:LightGray</td><td>Carpet (Light Gray)</td></tr><tr><td><img src="img/171_9.png"></td><td>171:9</td><td>Carpet:Cyan</td><td>Carpet (Cyan)</td></tr><tr><td><img src="img/171_10.png"></td><td>171:10</td><td>Carpet:Purple</td><td>Carpet (Purple)</td></tr><tr><td><img src="img/171_11.png"></td><td>171:11</td><td>Carpet:Blue</td><td>Carpet (Blue)</td></tr><tr><td><img src="img/171_12.png"></td><td>171:12</td><td>Carpet:Brown</td><td>Carpet (Brown)</td></tr><tr><td><img src="img/171_13.png"></td><td>171:13</td><td>Carpet:Green</td><td>Carpet (Green)</td></tr><tr><td><img src="img/171_14.png"></td><td>171:14</td><td>Carpet:Red</td><td>Carpet (Red)</td></tr><tr><td><img src="img/171_15.png"></td><td>171:15</td><td>Carpet:Black</td><td>Carpet (Black)</td></tr><tr><td><img src="img/172.png"></td><td>172</td><td>HardenedClay</td><td>Hardened Clay</td></tr><tr><td><img src="img/173.png"></td><td>173</td><td>BlockofCoal</td><td>Block of Coal</td></tr><tr><td><img src="img/174.png"></td><td>174</td><td>PackedIce</td><td>Packed Ice</td></tr><tr><td><img src="img/175_0.png"></td><td>175:0</td><td>Flower:Sunflower</td><td>Flower (Sunflower)</td></tr><tr><td><img src="img/175_1.png"></td><td>175:1</td><td>Flower:Lilac</td><td>Flower (Lilac)</td></tr><tr><td><img src="img/175_2.png"></td><td>175:2</td><td>Flower:DoubleTallgrass</td><td>Flower (Double Tallgrass)</td></tr><tr><td><img src="img/175_3.png"></td><td>175:3</td><td>Flower:LargeFern</td><td>Flower (Large Fern)</td></tr><tr><td><img src="img/175_4.png"></td><td>175:4</td><td>Flower:RoseBush</td><td>Flower (Rose Bush)</td></tr><tr><td><img src="img/175_5.png"></td><td>175:5</td><td>Flower:Peony</td><td>Flower (Peony)</td></tr><tr><td><img src="img/183.png"></td><td>183</td><td>SpruceFenceGate</td><td>Spruce Fence Gate</td></tr><tr><td><img src="img/184.png"></td><td>184</td><td>BirchFenceGate</td><td>Birch Fence Gate</td></tr><tr><td><img src="img/185.png"></td><td>185</td><td>JungleFenceGate</td><td>Jungle Fence Gate</td></tr><tr><td><img src="img/186.png"></td><td>186</td><td>DarkOakFenceGate</td><td>Dark Oak Fence Gate</td></tr><tr><td><img src="img/187.png"></td><td>187</td><td>AcaciaFenceGate</td><td>Acacia Fence Gate</td></tr><tr><td><img src="img/198.png"></td><td>198</td><td>GrassPath</td><td>Grass Path</td></tr><tr><td><img src="img/243.png"></td><td>243</td><td>Podzol</td><td>Podzol</td></tr><tr><td><img src="img/244.png"></td><td>244</td><td>BeetrootBlock</td><td>Beetroot Block</td></tr><tr><td><img src="img/245.png"></td><td>245</td><td>StoneCutter</td><td>Stone Cutter</td></tr><tr><td><img src="img/246.png"></td><td>246</td><td>GlowingObsidian</td><td>Glowing Obsidian</td></tr><tr><td><img src="img/247.png"></td><td>247</td><td>NetherReactorCore</td><td>Nether Reactor Core</td></tr><tr><td><img src="img/248.png"></td><td>248</td><td>UnusedBlock</td><td>Unused Block</td></tr><tr><td><img src="img/249.png"></td><td>249</td><td>UnusedBlock2</td><td>Unused Block2</td></tr><tr><td><img src="img/255.png"></td><td>255</td><td>reserved</td><td>reserved</td></tr><tr><td><img src="img/256.png"></td><td>256</td><td>IronShovel</td><td>Iron Shovel</td></tr><tr><td><img src="img/257.png"></td><td>257</td><td>IronPickaxe</td><td>Iron Pickaxe</td></tr><tr><td><img src="img/258.png"></td><td>258</td><td>IronAxe</td><td>Iron Axe</td></tr><tr><td><img src="img/259.png"></td><td>259</td><td>FlintAndSteel</td><td>Flint And Steel</td></tr><tr><td><img src="img/260.png"></td><td>260</td><td>Apple</td><td>Apple</td></tr><tr><td><img src="img/261.png"></td><td>261</td><td>Bow</td><td>Bow</td></tr><tr><td><img src="img/262.png"></td><td>262</td><td>Arrow</td><td>Arrow</td></tr><tr><td><img src="img/263_0.png"></td><td>263:0</td><td>Coal:Normal</td><td>Coal (Normal)</td></tr><tr><td><img src="img/263_1.png"></td><td>263:1</td><td>Coal:Charcoal</td><td>Coal (Charcoal)</td></tr><tr><td><img src="img/264.png"></td><td>264</td><td>Diamond</td><td>Diamond</td></tr><tr><td><img src="img/265.png"></td><td>265</td><td>IronIngot</td><td>Iron Ingot</td></tr><tr><td><img src="img/266.png"></td><td>266</td><td>GoldIngot</td><td>Gold Ingot</td></tr><tr><td><img src="img/267.png"></td><td>267</td><td>IronSword</td><td>Iron Sword</td></tr><tr><td><img src="img/268.png"></td><td>268</td><td>WoodenSword</td><td>Wooden Sword</td></tr><tr><td><img src="img/269.png"></td><td>269</td><td>WoodenShovel</td><td>Wooden Shovel</td></tr><tr><td><img src="img/270.png"></td><td>270</td><td>WoodenPickaxe</td><td>Wooden Pickaxe</td></tr><tr><td><img src="img/271.png"></td><td>271</td><td>WoodenAxe</td><td>Wooden Axe</td></tr><tr><td><img src="img/272.png"></td><td>272</td><td>StoneSword</td><td>Stone Sword</td></tr><tr><td><img src="img/273.png"></td><td>273</td><td>StoneShovel</td><td>Stone Shovel</td></tr><tr><td><img src="img/274.png"></td><td>274</td><td>StonePickaxe</td><td>Stone Pickaxe</td></tr><tr><td><img src="img/275.png"></td><td>275</td><td>StoneAxe</td><td>Stone Axe</td></tr><tr><td><img src="img/276.png"></td><td>276</td><td>DiamondSword</td><td>Diamond Sword</td></tr><tr><td><img src="img/277.png"></td><td>277</td><td>DiamondShovel</td><td>Diamond Shovel</td></tr><tr><td><img src="img/278.png"></td><td>278</td><td>DiamondPickaxe</td><td>Diamond Pickaxe</td></tr><tr><td><img src="img/279.png"></td><td>279</td><td>DiamondAxe</td><td>Diamond Axe</td></tr><tr><td><img src="img/280.png"></td><td>280</td><td>Stick</td><td>Stick</td></tr><tr><td><img src="img/281.png"></td><td>281</td><td>Bowl</td><td>Bowl</td></tr><tr><td><img src="img/282.png"></td><td>282</td><td>MushroomStew</td><td>Mushroom Stew</td></tr><tr><td><img src="img/283.png"></td><td>283</td><td>GoldSword</td><td>Gold Sword</td></tr><tr><td><img src="img/284.png"></td><td>284</td><td>GoldShovel</td><td>Gold Shovel</td></tr><tr><td><img src="img/285.png"></td><td>285</td><td>GoldPickaxe</td><td>Gold Pickaxe</td></tr><tr><td><img src="img/286.png"></td><td>286</td><td>GoldAxe</td><td>Gold Axe</td></tr><tr><td><img src="img/287.png"></td><td>287</td><td>String</td><td>String</td></tr><tr><td><img src="img/288.png"></td><td>288</td><td>Feather</td><td>Feather</td></tr><tr><td><img src="img/289.png"></td><td>289</td><td>Gunpowder</td><td>Gunpowder</td></tr><tr><td><img src="img/290.png"></td><td>290</td><td>WoodenHoe</td><td>Wooden Hoe</td></tr><tr><td><img src="img/291.png"></td><td>291</td><td>StoneHoe</td><td>Stone Hoe</td></tr><tr><td><img src="img/292.png"></td><td>292</td><td>IronHoe</td><td>Iron Hoe</td></tr><tr><td><img src="img/293.png"></td><td>293</td><td>DiamondHoe</td><td>Diamond Hoe</td></tr><tr><td><img src="img/294.png"></td><td>294</td><td>GoldHoe</td><td>Gold Hoe</td></tr><tr><td><img src="img/295.png"></td><td>295</td><td>Seeds</td><td>Seeds</td></tr><tr><td><img src="img/296.png"></td><td>296</td><td>Wheat</td><td>Wheat</td></tr><tr><td><img src="img/297.png"></td><td>297</td><td>Bread</td><td>Bread</td></tr><tr><td><img src="img/298.png"></td><td>298</td><td>LeatherCap</td><td>Leather Cap</td></tr><tr><td><img src="img/299.png"></td><td>299</td><td>LeatherTunic</td><td>Leather Tunic</td></tr><tr><td><img src="img/300.png"></td><td>300</td><td>LeatherPants</td><td>Leather Pants</td></tr><tr><td><img src="img/301.png"></td><td>301</td><td>LeatherBoots</td><td>Leather Boots</td></tr><tr><td><img src="img/302.png"></td><td>302</td><td>ChainHelmet</td><td>Chain Helmet</td></tr><tr><td><img src="img/303.png"></td><td>303</td><td>ChainChestplate</td><td>Chain Chestplate</td></tr><tr><td><img src="img/304.png"></td><td>304</td><td>ChainLeggings</td><td>Chain Leggings</td></tr><tr><td><img src="img/305.png"></td><td>305</td><td>ChainBoots</td><td>Chain Boots</td></tr><tr><td><img src="img/306.png"></td><td>306</td><td>IronHelmet</td><td>Iron Helmet</td></tr><tr><td><img src="img/307.png"></td><td>307</td><td>IronChestplate</td><td>Iron Chestplate</td></tr><tr><td><img src="img/308.png"></td><td>308</td><td>IronLeggings</td><td>Iron Leggings</td></tr><tr><td><img src="img/309.png"></td><td>309</td><td>IronBoots</td><td>Iron Boots</td></tr><tr><td><img src="img/310.png"></td><td>310</td><td>DiamondHelmet</td><td>Diamond Helmet</td></tr><tr><td><img src="img/311.png"></td><td>311</td><td>DiamondChestplate</td><td>Diamond Chestplate</td></tr><tr><td><img src="img/312.png"></td><td>312</td><td>DiamondLeggings</td><td>Diamond Leggings</td></tr><tr><td><img src="img/313.png"></td><td>313</td><td>DiamondBoots</td><td>Diamond Boots</td></tr><tr><td><img src="img/314.png"></td><td>314</td><td>GoldenHelmet</td><td>Golden Helmet</td></tr><tr><td><img src="img/315.png"></td><td>315</td><td>GoldenChestplate</td><td>Golden Chestplate</td></tr><tr><td><img src="img/316.png"></td><td>316</td><td>GoldenLeggings</td><td>Golden Leggings</td></tr><tr><td><img src="img/317.png"></td><td>317</td><td>GoldenBoots</td><td>Golden Boots</td></tr><tr><td><img src="img/318.png"></td><td>318</td><td>Flint</td><td>Flint</td></tr><tr><td><img src="img/319.png"></td><td>319</td><td>RawPorkchop</td><td>Raw Porkchop</td></tr><tr><td><img src="img/320.png"></td><td>320</td><td>CookedPorkchop</td><td>Cooked Porkchop</td></tr><tr><td><img src="img/321.png"></td><td>321</td><td>Painting</td><td>Painting</td></tr><tr><td><img src="img/322_0.png"></td><td>322:0</td><td>GoldenApple:Normal</td><td>Golden Apple (Normal)</td></tr><tr><td><img src="img/322_1.png"></td><td>322:1</td><td>GoldenApple:Enchanted</td><td>Golden Apple (Enchanted)</td></tr><tr><td><img src="img/323.png"></td><td>323</td><td>Sign</td><td>Sign</td></tr><tr><td><img src="img/324.png"></td><td>324</td><td>WoodenDoor</td><td>Wooden Door</td></tr><tr><td><img src="img/325_0.png"></td><td>325:0</td><td>Bucket:Empty</td><td>Bucket (Empty)</td></tr><tr><td><img src="img/325_8.png"></td><td>325:8</td><td>Bucket:Water</td><td>Bucket (Water)</td></tr><tr><td><img src="img/325_9.png"></td><td>325:9</td><td>Bucket:StillWater</td><td>Bucket (Still Water)</td></tr><tr><td><img src="img/325_10.png"></td><td>325:10</td><td>Bucket:Lava</td><td>Bucket (Lava)</td></tr><tr><td><img src="img/325_11.png"></td><td>325:11</td><td>Bucket:StillLava</td><td>Bucket (Still Lava)</td></tr><tr><td><img src="img/325_46.png"></td><td>325:46</td><td>Bucket:TNT</td><td>Bucket (TNT)</td></tr><tr><td><img src="img/325_51.png"></td><td>325:51</td><td>Bucket:Fire</td><td>Bucket (Fire)</td></tr><tr><td><img src="img/328.png"></td><td>328</td><td>Minecart</td><td>Minecart</td></tr><tr><td><img src="img/329.png"></td><td>329</td><td>Saddle</td><td>Saddle</td></tr><tr><td><img src="img/330.png"></td><td>330</td><td>IronDoor</td><td>Iron Door</td></tr><tr><td><img src="img/331.png"></td><td>331</td><td>Redstone</td><td>Redstone</td></tr><tr><td><img src="img/332.png"></td><td>332</td><td>Snowball</td><td>Snowball</td></tr><tr><td><img src="img/333_0.png"></td><td>333:0</td><td>Boat:Oak</td><td>Boat (Oak)</td></tr><tr><td><img src="img/333_1.png"></td><td>333:1</td><td>Boat:Spruce</td><td>Boat (Spruce)</td></tr><tr><td><img src="img/333_2.png"></td><td>333:2</td><td>Boat:Birch</td><td>Boat (Birch)</td></tr><tr><td><img src="img/333_3.png"></td><td>333:3</td><td>Boat:Jungle</td><td>Boat (Jungle)</td></tr><tr><td><img src="img/333_4.png"></td><td>333:4</td><td>Boat:Acacia</td><td>Boat (Acacia)</td></tr><tr><td><img src="img/333_5.png"></td><td>333:5</td><td>Boat:DarkOak</td><td>Boat (Dark Oak)</td></tr><tr><td><img src="img/334.png"></td><td>334</td><td>Leather</td><td>Leather</td></tr><tr><td><img src="img/336.png"></td><td>336</td><td>Brick</td><td>Brick</td></tr><tr><td><img src="img/337.png"></td><td>337</td><td>Clay</td><td>Clay</td></tr><tr><td><img src="img/338.png"></td><td>338</td><td>SugarCane</td><td>Sugar Cane</td></tr><tr><td><img src="img/339.png"></td><td>339</td><td>Paper</td><td>Paper</td></tr><tr><td><img src="img/340.png"></td><td>340</td><td>Book</td><td>Book</td></tr><tr><td><img src="img/341.png"></td><td>341</td><td>Slimeball</td><td>Slimeball</td></tr><tr><td><img src="img/344.png"></td><td>344</td><td>Egg</td><td>Egg</td></tr><tr><td><img src="img/345.png"></td><td>345</td><td>Compass</td><td>Compass</td></tr><tr><td><img src="img/346.png"></td><td>346</td><td>FishingRod</td><td>Fishing Rod</td></tr><tr><td><img src="img/347.png"></td><td>347</td><td>Clock</td><td>Clock</td></tr><tr><td><img src="img/348.png"></td><td>348</td><td>GlowstoneDust</td><td>Glowstone Dust</td></tr><tr><td><img src="img/349_0.png"></td><td>349:0</td><td>RawFish:Fish</td><td>Raw Fish (Fish)</td></tr><tr><td><img src="img/349_1.png"></td><td>349:1</td><td>RawFish:Salmon</td><td>Raw Fish (Salmon)</td></tr><tr><td><img src="img/349_2.png"></td><td>349:2</td><td>RawFish:Clownfish</td><td>Raw Fish (Clownfish)</td></tr><tr><td><img src="img/349_3.png"></td><td>349:3</td><td>RawFish:Pufferfish</td><td>Raw Fish (Pufferfish)</td></tr><tr><td><img src="img/350_0.png"></td><td>350:0</td><td>CookedFish:Fish</td><td>Cooked Fish (Fish)</td></tr><tr><td><img src="img/350_1.png"></td><td>350:1</td><td>CookedFish:Salmon</td><td>Cooked Fish (Salmon)</td></tr><tr><td><img src="img/350_2.png"></td><td>350:2</td><td>CookedFish:Clownfish</td><td>Cooked Fish (Clownfish)</td></tr><tr><td><img src="img/350_3.png"></td><td>350:3</td><td>CookedFish:Pufferfish</td><td>Cooked Fish (Pufferfish)</td></tr><tr><td><img src="img/351_0.png"></td><td>351:0</td><td>Dye:IncSac</td><td>Dye (Inc Sac)</td></tr><tr><td><img src="img/351_1.png"></td><td>351:1</td><td>Dye:RoseRed</td><td>Dye (Rose Red)</td></tr><tr><td><img src="img/351_2.png"></td><td>351:2</td><td>Dye:CactusGreen</td><td>Dye (Cactus Green)</td></tr><tr><td><img src="img/351_3.png"></td><td>351:3</td><td>Dye:CocoaBeans</td><td>Dye (Cocoa Beans)</td></tr><tr><td><img src="img/351_4.png"></td><td>351:4</td><td>Dye:LapisLazuli</td><td>Dye (Lapis Lazuli)</td></tr><tr><td><img src="img/351_5.png"></td><td>351:5</td><td>Dye:Purple</td><td>Dye (Purple)</td></tr><tr><td><img src="img/351_6.png"></td><td>351:6</td><td>Dye:Cyan</td><td>Dye (Cyan)</td></tr><tr><td><img src="img/351_7.png"></td><td>351:7</td><td>Dye:LightGray</td><td>Dye (Light Gray)</td></tr><tr><td><img src="img/351_8.png"></td><td>351:8</td><td>Dye:Gray</td><td>Dye (Gray)</td></tr><tr><td><img src="img/351_9.png"></td><td>351:9</td><td>Dye:Pink</td><td>Dye (Pink)</td></tr><tr><td><img src="img/351_10.png"></td><td>351:10</td><td>Dye:Lime</td><td>Dye (Lime)</td></tr><tr><td><img src="img/351_11.png"></td><td>351:11</td><td>Dye:DandelionYellow</td><td>Dye (Dandelion Yellow)</td></tr><tr><td><img src="img/351_12.png"></td><td>351:12</td><td>Dye:LightBlue</td><td>Dye (Light Blue)</td></tr><tr><td><img src="img/351_13.png"></td><td>351:13</td><td>Dye:Magenta</td><td>Dye (Magenta)</td></tr><tr><td><img src="img/351_14.png"></td><td>351:14</td><td>Dye:Orange</td><td>Dye (Orange)</td></tr><tr><td><img src="img/351_15.png"></td><td>351:15</td><td>Dye:BoneMeal</td><td>Dye (Bone Meal)</td></tr><tr><td><img src="img/352.png"></td><td>352</td><td>Bone</td><td>Bone</td></tr><tr><td><img src="img/353.png"></td><td>353</td><td>Sugar</td><td>Sugar</td></tr><tr><td><img src="img/354.png"></td><td>354</td><td>Cake</td><td>Cake</td></tr><tr><td><img src="img/355.png"></td><td>355</td><td>Bed</td><td>Bed</td></tr><tr><td><img src="img/357.png"></td><td>357</td><td>Cookie</td><td>Cookie</td></tr><tr><td><img src="img/359.png"></td><td>359</td><td>Shears</td><td>Shears</td></tr><tr><td><img src="img/360.png"></td><td>360</td><td>Melon</td><td>Melon</td></tr><tr><td><img src="img/361.png"></td><td>361</td><td>PumpkinSeeds</td><td>Pumpkin Seeds</td></tr><tr><td><img src="img/362.png"></td><td>362</td><td>MelonSeeds</td><td>Melon Seeds</td></tr><tr><td><img src="img/363.png"></td><td>363</td><td>RawBeef</td><td>Raw Beef</td></tr><tr><td><img src="img/364.png"></td><td>364</td><td>Steak</td><td>Steak</td></tr><tr><td><img src="img/365.png"></td><td>365</td><td>RawChicken</td><td>Raw Chicken</td></tr><tr><td><img src="img/366.png"></td><td>366</td><td>CookedChicken</td><td>Cooked Chicken</td></tr><tr><td><img src="img/367.png"></td><td>367</td><td>RottenFlesh</td><td>Rotten Flesh</td></tr><tr><td><img src="img/369.png"></td><td>369</td><td>BlazeRod</td><td>Blaze Rod</td></tr><tr><td><img src="img/370.png"></td><td>370</td><td>GhastTear</td><td>Ghast Tear</td></tr><tr><td><img src="img/371.png"></td><td>371</td><td>GoldNugget</td><td>Gold Nugget</td></tr><tr><td><img src="img/372_0.png"></td><td>372:0</td><td>NetherWartItem:Small</td><td>Nether Wart Item (Small)</td></tr><tr><td><img src="img/372_1.png"></td><td>372:1</td><td>NetherWartItem:Medium</td><td>Nether Wart Item (Medium)</td></tr><tr><td><img src="img/372_2.png"></td><td>372:2</td><td>NetherWartItem:Large</td><td>Nether Wart Item (Large)</td></tr><tr><td><img src="img/372_3.png"></td><td>372:3</td><td>NetherWartItem:Grown</td><td>Nether Wart Item (Grown)</td></tr><tr><td><img src="img/373_0.png"></td><td>373:0</td><td>Potion:Water</td><td>Potion (Water)</td></tr><tr><td><img src="img/373_1.png"></td><td>373:1</td><td>Potion:Mundane</td><td>Potion (Mundane)</td></tr><tr><td><img src="img/373_2.png"></td><td>373:2</td><td>Potion:Mundane2</td><td>Potion (Mundane2)</td></tr><tr><td><img src="img/373_3.png"></td><td>373:3</td><td>Potion:Thick</td><td>Potion (Thick)</td></tr><tr><td><img src="img/373_4.png"></td><td>373:4</td><td>Potion:Awkward</td><td>Potion (Awkward)</td></tr><tr><td><img src="img/373_5.png"></td><td>373:5</td><td>Potion:NightVision</td><td>Potion (Night Vision)</td></tr><tr><td><img src="img/373_6.png"></td><td>373:6</td><td>Potion:NightVisionLong</td><td>Potion (Night Vision Long)</td></tr><tr><td><img src="img/373_7.png"></td><td>373:7</td><td>Potion:Invisibility</td><td>Potion (Invisibility)</td></tr><tr><td><img src="img/373_8.png"></td><td>373:8</td><td>Potion:InvisibilityLong</td><td>Potion (Invisibility Long)</td></tr><tr><td><img src="img/373_9.png"></td><td>373:9</td><td>Potion:Leaping</td><td>Potion (Leaping)</td></tr><tr><td><img src="img/373_10.png"></td><td>373:10</td><td>Potion:LeapingLong</td><td>Potion (Leaping Long)</td></tr><tr><td><img src="img/373_11.png"></td><td>373:11</td><td>Potion:LeapingII</td><td>Potion (Leaping II)</td></tr><tr><td><img src="img/373_12.png"></td><td>373:12</td><td>Potion:FireResistance</td><td>Potion (Fire Resistance)</td></tr><tr><td><img src="img/373_13.png"></td><td>373:13</td><td>Potion:FireResistanceLong</td><td>Potion (Fire Resistance Long)</td></tr><tr><td><img src="img/373_14.png"></td><td>373:14</td><td>Potion:Swiftness</td><td>Potion (Swiftness)</td></tr><tr><td><img src="img/373_15.png"></td><td>373:15</td><td>Potion:SwiftnessLong</td><td>Potion (Swiftness Long)</td></tr><tr><td><img src="img/373_16.png"></td><td>373:16</td><td>Potion:SwiftnessII</td><td>Potion (Swiftness II)</td></tr><tr><td><img src="img/373_17.png"></td><td>373:17</td><td>Potion:Slowness</td><td>Potion (Slowness)</td></tr><tr><td><img src="img/373_18.png"></td><td>373:18</td><td>Potion:SlownessLong</td><td>Potion (Slowness Long)</td></tr><tr><td><img src="img/373_19.png"></td><td>373:19</td><td>Potion:WaterBreathing</td><td>Potion (Water Breathing)</td></tr><tr><td><img src="img/373_20.png"></td><td>373:20</td><td>Potion:WaterBreathingLong</td><td>Potion (Water Breathing Long)</td></tr><tr><td><img src="img/373_21.png"></td><td>373:21</td><td>Potion:Healing</td><td>Potion (Healing)</td></tr><tr><td><img src="img/373_22.png"></td><td>373:22</td><td>Potion:HealingII</td><td>Potion (Healing II)</td></tr><tr><td><img src="img/373_23.png"></td><td>373:23</td><td>Potion:Harming</td><td>Potion (Harming)</td></tr><tr><td><img src="img/373_24.png"></td><td>373:24</td><td>Potion:HarmingII</td><td>Potion (Harming II)</td></tr><tr><td><img src="img/373_25.png"></td><td>373:25</td><td>Potion:Poison</td><td>Potion (Poison)</td></tr><tr><td><img src="img/373_26.png"></td><td>373:26</td><td>Potion:PoisonLong</td><td>Potion (Poison Long)</td></tr><tr><td><img src="img/373_27.png"></td><td>373:27</td><td>Potion:PoisonII</td><td>Potion (Poison II)</td></tr><tr><td><img src="img/373_28.png"></td><td>373:28</td><td>Potion:Regeneration</td><td>Potion (Regeneration)</td></tr><tr><td><img src="img/373_29.png"></td><td>373:29</td><td>Potion:RegenerationLong</td><td>Potion (Regeneration Long)</td></tr><tr><td><img src="img/373_30.png"></td><td>373:30</td><td>Potion:RegenerationII</td><td>Potion (Regeneration II)</td></tr><tr><td><img src="img/373_31.png"></td><td>373:31</td><td>Potion:Strength</td><td>Potion (Strength)</td></tr><tr><td><img src="img/373_32.png"></td><td>373:32</td><td>Potion:StrengthLong</td><td>Potion (Strength Long)</td></tr><tr><td><img src="img/373_33.png"></td><td>373:33</td><td>Potion:StrengthII</td><td>Potion (Strength II)</td></tr><tr><td><img src="img/373_34.png"></td><td>373:34</td><td>Potion:Weakness</td><td>Potion (Weakness)</td></tr><tr><td><img src="img/373_35.png"></td><td>373:35</td><td>Potion:WeaknessLong</td><td>Potion (Weakness Long)</td></tr><tr><td><img src="img/374.png"></td><td>374</td><td>GlassBottle</td><td>Glass Bottle</td></tr><tr><td><img src="img/375.png"></td><td>375</td><td>SpiderEye</td><td>Spider Eye</td></tr><tr><td><img src="img/376.png"></td><td>376</td><td>FermentedSpiderEye</td><td>Fermented Spider Eye</td></tr><tr><td><img src="img/377.png"></td><td>377</td><td>BlazePowder</td><td>Blaze Powder</td></tr><tr><td><img src="img/378.png"></td><td>378</td><td>MagmaCream</td><td>Magma Cream</td></tr><tr><td><img src="img/379.png"></td><td>379</td><td>BrewingStand</td><td>Brewing Stand</td></tr><tr><td><img src="img/382.png"></td><td>382</td><td>GlisteringMelon</td><td>Glistering Melon</td></tr><tr><td><img src="img/383_10.png"></td><td>383:10</td><td>SpawnEgg:Chicken</td><td>Spawn Egg (Chicken)</td></tr><tr><td><img src="img/383_11.png"></td><td>383:11</td><td>SpawnEgg:Cow</td><td>Spawn Egg (Cow)</td></tr><tr><td><img src="img/383_12.png"></td><td>383:12</td><td>SpawnEgg:Pig</td><td>Spawn Egg (Pig)</td></tr><tr><td><img src="img/383_13.png"></td><td>383:13</td><td>SpawnEgg:Sheep</td><td>Spawn Egg (Sheep)</td></tr><tr><td><img src="img/383_14.png"></td><td>383:14</td><td>SpawnEgg:Wolf</td><td>Spawn Egg (Wolf)</td></tr><tr><td><img src="img/383_15.png"></td><td>383:15</td><td>SpawnEgg:Villager</td><td>Spawn Egg (Villager)</td></tr><tr><td><img src="img/383_16.png"></td><td>383:16</td><td>SpawnEgg:Mooshroom</td><td>Spawn Egg (Mooshroom)</td></tr><tr><td><img src="img/383_17.png"></td><td>383:17</td><td>SpawnEgg:Squid</td><td>Spawn Egg (Squid)</td></tr><tr><td><img src="img/383_19.png"></td><td>383:19</td><td>SpawnEgg:Bat</td><td>Spawn Egg (Bat)</td></tr><tr><td><img src="img/383_20.png"></td><td>383:20</td><td>SpawnEgg:IronGolem</td><td>Spawn Egg (Iron Golem)</td></tr><tr><td><img src="img/383_21.png"></td><td>383:21</td><td>SpawnEgg:SnowGolem</td><td>Spawn Egg (Snow Golem)</td></tr><tr><td><img src="img/383_22.png"></td><td>383:22</td><td>SpawnEgg:Ocelot</td><td>Spawn Egg (Ocelot)</td></tr><tr><td><img src="img/383_32.png"></td><td>383:32</td><td>SpawnEgg:Zombie</td><td>Spawn Egg (Zombie)</td></tr><tr><td><img src="img/383_33.png"></td><td>383:33</td><td>SpawnEgg:Creeper</td><td>Spawn Egg (Creeper)</td></tr><tr><td><img src="img/383_34.png"></td><td>383:34</td><td>SpawnEgg:Skeleton</td><td>Spawn Egg (Skeleton)</td></tr><tr><td><img src="img/383_35.png"></td><td>383:35</td><td>SpawnEgg:Spider</td><td>Spawn Egg (Spider)</td></tr><tr><td><img src="img/383_36.png"></td><td>383:36</td><td>SpawnEgg:ZombiePigman</td><td>Spawn Egg (Zombie Pigman)</td></tr><tr><td><img src="img/383_37.png"></td><td>383:37</td><td>SpawnEgg:Slime</td><td>Spawn Egg (Slime)</td></tr><tr><td><img src="img/383_38.png"></td><td>383:38</td><td>SpawnEgg:Enderman</td><td>Spawn Egg (Enderman)</td></tr><tr><td><img src="img/383_39.png"></td><td>383:39</td><td>SpawnEgg:Silverfish</td><td>Spawn Egg (Silverfish)</td></tr><tr><td><img src="img/383_40.png"></td><td>383:40</td><td>SpawnEgg:CaveSpider</td><td>Spawn Egg (Cave Spider)</td></tr><tr><td><img src="img/383_41.png"></td><td>383:41</td><td>SpawnEgg:Ghast</td><td>Spawn Egg (Ghast)</td></tr><tr><td><img src="img/383_42.png"></td><td>383:42</td><td>SpawnEgg:MagmaCube</td><td>Spawn Egg (Magma Cube)</td></tr><tr><td><img src="img/383_43.png"></td><td>383:43</td><td>SpawnEgg:Blaze</td><td>Spawn Egg (Blaze)</td></tr><tr><td><img src="img/383_44.png"></td><td>383:44</td><td>SpawnEgg:ZombieVillager</td><td>Spawn Egg (Zombie Villager)</td></tr><tr><td><img src="img/384.png"></td><td>384</td><td>BottleoEnchanting</td><td>Bottle o Enchanting</td></tr><tr><td><img src="img/388.png"></td><td>388</td><td>Emerald</td><td>Emerald</td></tr><tr><td><img src="img/390.png"></td><td>390</td><td>FlowerPotItem</td><td>Flower Pot Item</td></tr><tr><td><img src="img/391.png"></td><td>391</td><td>Carrot</td><td>Carrot</td></tr><tr><td><img src="img/392.png"></td><td>392</td><td>Potato</td><td>Potato</td></tr><tr><td><img src="img/393.png"></td><td>393</td><td>BakedPotato</td><td>Baked Potato</td></tr><tr><td><img src="img/394.png"></td><td>394</td><td>PoisonousPotato</td><td>Poisonous Potato</td></tr><tr><td><img src="img/396.png"></td><td>396</td><td>GoldenCarrot</td><td>Golden Carrot</td></tr><tr><td><img src="img/397_0.png"></td><td>397:0</td><td>MobHeadItem:Skeleton</td><td>Mob Head Item (Skeleton)</td></tr><tr><td><img src="img/397_1.png"></td><td>397:1</td><td>MobHeadItem:WitherSkeleton</td><td>Mob Head Item (Wither Skeleton)</td></tr><tr><td><img src="img/397_2.png"></td><td>397:2</td><td>MobHeadItem:ZombieHead</td><td>Mob Head Item (Zombie Head)</td></tr><tr><td><img src="img/397_3.png"></td><td>397:3</td><td>MobHeadItem:Head</td><td>Mob Head Item (Head)</td></tr><tr><td><img src="img/397_4.png"></td><td>397:4</td><td>MobHeadItem:Creeper</td><td>Mob Head Item (Creeper)</td></tr><tr><td><img src="img/400.png"></td><td>400</td><td>PumpkinPie</td><td>Pumpkin Pie</td></tr><tr><td><img src="img/403.png"></td><td>403</td><td>EnchantedBook</td><td>Enchanted Book</td></tr><tr><td><img src="img/405.png"></td><td>405</td><td>NetherBrick</td><td>Nether Brick</td></tr><tr><td><img src="img/406.png"></td><td>406</td><td>NetherQuartz</td><td>Nether Quartz</td></tr><tr><td><img src="img/414.png"></td><td>414</td><td>RabitsFoot</td><td>Rabits Foot</td></tr><tr><td><img src="img/438_0.png"></td><td>438:0</td><td>SplashPotion:Water</td><td>Splash Potion (Water)</td></tr><tr><td><img src="img/438_1.png"></td><td>438:1</td><td>SplashPotion:Mundane</td><td>Splash Potion (Mundane)</td></tr><tr><td><img src="img/438_2.png"></td><td>438:2</td><td>SplashPotion:Mundane2</td><td>Splash Potion (Mundane2)</td></tr><tr><td><img src="img/438_3.png"></td><td>438:3</td><td>SplashPotion:Thick</td><td>Splash Potion (Thick)</td></tr><tr><td><img src="img/438_4.png"></td><td>438:4</td><td>SplashPotion:Awkward</td><td>Splash Potion (Awkward)</td></tr><tr><td><img src="img/438_5.png"></td><td>438:5</td><td>SplashPotion:NightVision</td><td>Splash Potion (Night Vision)</td></tr><tr><td><img src="img/438_6.png"></td><td>438:6</td><td>SplashPotion:NightVisionLong</td><td>Splash Potion (Night Vision Long)</td></tr><tr><td><img src="img/438_7.png"></td><td>438:7</td><td>SplashPotion:Invisibility</td><td>Splash Potion (Invisibility)</td></tr><tr><td><img src="img/438_8.png"></td><td>438:8</td><td>SplashPotion:InvisibilityLong</td><td>Splash Potion (Invisibility Long)</td></tr><tr><td><img src="img/438_9.png"></td><td>438:9</td><td>SplashPotion:Leaping</td><td>Splash Potion (Leaping)</td></tr><tr><td><img src="img/438_10.png"></td><td>438:10</td><td>SplashPotion:LeapingLong</td><td>Splash Potion (Leaping Long)</td></tr><tr><td><img src="img/438_11.png"></td><td>438:11</td><td>SplashPotion:LeapingII</td><td>Splash Potion (Leaping II)</td></tr><tr><td><img src="img/438_12.png"></td><td>438:12</td><td>SplashPotion:FireResistance</td><td>Splash Potion (Fire Resistance)</td></tr><tr><td><img src="img/438_13.png"></td><td>438:13</td><td>SplashPotion:FireResistanceLong</td><td>Splash Potion (Fire Resistance Long)</td></tr><tr><td><img src="img/438_14.png"></td><td>438:14</td><td>SplashPotion:Swiftness</td><td>Splash Potion (Swiftness)</td></tr><tr><td><img src="img/438_15.png"></td><td>438:15</td><td>SplashPotion:SwiftnessLong</td><td>Splash Potion (Swiftness Long)</td></tr><tr><td><img src="img/438_16.png"></td><td>438:16</td><td>SplashPotion:SwiftnessII</td><td>Splash Potion (Swiftness II)</td></tr><tr><td><img src="img/438_17.png"></td><td>438:17</td><td>SplashPotion:Slowness</td><td>Splash Potion (Slowness)</td></tr><tr><td><img src="img/438_18.png"></td><td>438:18</td><td>SplashPotion:SlownessLong</td><td>Splash Potion (Slowness Long)</td></tr><tr><td><img src="img/438_19.png"></td><td>438:19</td><td>SplashPotion:WaterBreathing</td><td>Splash Potion (Water Breathing)</td></tr><tr><td><img src="img/438_20.png"></td><td>438:20</td><td>SplashPotion:WaterBreathingLong</td><td>Splash Potion (Water Breathing Long)</td></tr><tr><td><img src="img/438_21.png"></td><td>438:21</td><td>SplashPotion:Healing</td><td>Splash Potion (Healing)</td></tr><tr><td><img src="img/438_22.png"></td><td>438:22</td><td>SplashPotion:HealingII</td><td>Splash Potion (Healing II)</td></tr><tr><td><img src="img/438_23.png"></td><td>438:23</td><td>SplashPotion:Harming</td><td>Splash Potion (Harming)</td></tr><tr><td><img src="img/438_24.png"></td><td>438:24</td><td>SplashPotion:HarmingII</td><td>Splash Potion (Harming II)</td></tr><tr><td><img src="img/438_25.png"></td><td>438:25</td><td>SplashPotion:Poison</td><td>Splash Potion (Poison)</td></tr><tr><td><img src="img/438_26.png"></td><td>438:26</td><td>SplashPotion:PoisonLong</td><td>Splash Potion (Poison Long)</td></tr><tr><td><img src="img/438_27.png"></td><td>438:27</td><td>SplashPotion:PoisonII</td><td>Splash Potion (Poison II)</td></tr><tr><td><img src="img/438_28.png"></td><td>438:28</td><td>SplashPotion:Regeneration</td><td>Splash Potion (Regeneration)</td></tr><tr><td><img src="img/438_29.png"></td><td>438:29</td><td>SplashPotion:RegenerationLong</td><td>Splash Potion (Regeneration Long)</td></tr><tr><td><img src="img/438_30.png"></td><td>438:30</td><td>SplashPotion:RegenerationII</td><td>Splash Potion (Regeneration II)</td></tr><tr><td><img src="img/438_31.png"></td><td>438:31</td><td>SplashPotion:Strength</td><td>Splash Potion (Strength)</td></tr><tr><td><img src="img/438_32.png"></td><td>438:32</td><td>SplashPotion:StrengthLong</td><td>Splash Potion (Strength Long)</td></tr><tr><td><img src="img/438_33.png"></td><td>438:33</td><td>SplashPotion:StrengthII</td><td>Splash Potion (Strength II)</td></tr><tr><td><img src="img/438_34.png"></td><td>438:34</td><td>SplashPotion:Weakness</td><td>Splash Potion (Weakness)</td></tr><tr><td><img src="img/438_35.png"></td><td>438:35</td><td>SplashPotion:WeaknessLong</td><td>Splash Potion (Weakness Long)</td></tr><tr><td><img src="img/457.png"></td><td>457</td><td>Beetroot</td><td>Beetroot</td></tr><tr><td><img src="img/458.png"></td><td>458</td><td>BettrootSeeds</td><td>Bettroot Seeds</td></tr><tr><td><img src="img/459.png"></td><td>459</td><td>BeetrootSoup</td><td>Beetroot Soup</td></tr>
+                        </table>
+					</li>
+				</div>
+			</ons-page>
+		</ons-navigator>
+	</ons-template>
+	
+</body>
+</html>
